@@ -79,7 +79,7 @@ class ZaberStage:
         self.fullstep_resolution = screw_pitchself._get("cloop_steps")
         self.microstep_resolution = self.fullstep_resolution/self._get("resolution")
 
-        self.encoder_resolution = screw_pitch/self._get("cloop_counts"))
+        self.encoder_resolution = screw_pitch/self._get("cloop_counts")
 
         for row in help_rows:
 #            cmd = Command(device,axis=axis,help_row=row)
