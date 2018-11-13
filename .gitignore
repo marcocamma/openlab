@@ -1,3 +1,8 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+*.swp
+bme/offsets/
+bme/testfiles/
+bme/gpx_files/
+utils/log/
