@@ -3,6 +3,7 @@ from ..newport import newportESP
 from ..generic import motor
 from ..utils import yaml_storage
 from ..generic import delay_stage as _delay_stage
+from ..oscilloscopes.lecroy import LeCroyScope
 
 import pathlib
 p = pathlib.Path(__file__).parent / "offsets"
@@ -25,5 +26,10 @@ stage_mot = motor.Motor("stage1",
         esp301_ax1.get_position,
         wait= esp301_ax1.wait
         )
+
+
+
+thzscope = LeCroyScope("129.20.76.26")
+
 
 delay_stage = _delay_stage.DelayStage(stage_mot)
