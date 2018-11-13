@@ -1,0 +1,76 @@
+""" Module to abstract delay stage """
+from __future__ import print_function,division
+
+
+import numpy as np
+import os
+import logging
+
+
+logging.basicConfig(format='%(asctime)s %(message)s',datefmt="%Y-%m-%d %H:%M:%S")
+logger = logging.getLogger(__name__)
+
+__author__ = "Marco Cammarata"
+__copyright__ = "Copyright 2016, Marco Cammarata"
+__version__ = "1.0"
+__maintainer__ = "Marco Cammarata"
+__email__ = "marcocamma@gmail.com"
+
+
+from .motor import Motor
+
+from scipy.constants import speed_of_light as c_light
+
+def _mm_to_ps(pos_mm,bounces=1):
+    pos_m = pos_mm*1e-3
+    delay_s = pos_m*2*bounces/c_light
+    delay_ps = delay_s*1e+12
+    return delay_ps
+
+def _ps_to_mm(delay_ps,bounces=1):
+    delay_s = delay_ps*1e-12
+    pos_m = delay_s/2/bounces*c_light
+    pos_mm = pos_m*1e3
+    return pos_mm
+
+class DelayStage:
+  
+    def __init__(self,motor,bounces=1):
+        self._motor = motor
+        self.bounces = bounces
+        self.mne = f"delay_{self._motor.mne}"
+
+
+    def move(self,delay_ps):
+        pos = _ps_to_mm(delay_ps,bounces=self.bounces)
+        self._motor.move(pos)
+
+    def mvr(self,delta_delay_ps):
+        self._motor.mvr(_ps_to_mm(delta_delay_ps))
+
+    def wm(self):
+        stage_mm = self._motor.wm()
+        delay_ps = _mm_to_ps(stage_mm,bounces=self.bounces)
+        return delay_ps
+
+    def wmd(self):
+        stage_mm = self._motor.wmd()
+        delay_ps = _mm_to_ps(stage_mm)
+        return delay_ps
+
+    def wait(self):
+        self._motor.wait()
+
+    def set(self,value):
+        pos = _ps_to_mm(value)
+        self._motor.set(pos)
+
+    def __repr__(self):
+        pos = str(np.round( self.wm(), 3))
+        posd = str(np.round( self.wmd(), 3))
+        s = f"{self.mne}, position {pos} ps, dial {posd} ps"
+        return s
+
+    def __call__(self,value):
+        self.move(value)
+
