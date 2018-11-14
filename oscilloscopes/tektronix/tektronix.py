@@ -3,7 +3,7 @@ import time
 import struct
 from collections import namedtuple
 import numpy as np
-import connection_drivers
+from ..utils import connection_drivers
 
 _header = namedtuple("header","nbytes,nbits,encoding,binary_format1,binary_format2,endianess,info,npoints_tot,pt_format,pt_order,xunit,dx,x0,pt_off,yunit,dy,yoff,y0,notknown1,notknown2")
 

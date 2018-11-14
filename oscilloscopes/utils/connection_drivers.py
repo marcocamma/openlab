@@ -1,3 +1,6 @@
+"""
+written to be used from scope modules, useful for something else ?
+"""
 import socket
 import os
 import time

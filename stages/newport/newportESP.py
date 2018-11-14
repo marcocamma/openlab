@@ -89,20 +89,25 @@ class ESP(object):
   def __init__(self, port):
     """:param port: Serial port connected to the controller."""
     self.lock = threading.Lock()
-    self.ser = serial.Serial(port=port,
+    try:
+        self.ser = serial.Serial(port=port,
                              baudrate=19200,
                              bytesize=8,
                              timeout=1,
                              parity='N',
                              rtscts=1)
+        self.Abort = self.abort
+    except serial.SerialException:
+        self.ser = None
+        print("Cannot connect to ESP controller via "+port)
     #print("Found controller: " + self.version)
-    self.Abort = self.abort
 
   def __del__(self):
-    self.ser.close()
+    if self.ser is not None: self.ser.close()
 
   def read(self):
     """ Serial read with EOL character removed."""
+    if self.ser is None: return None
     with DelayedKeyboardInterrupt():
       # stuff here will not be interrupted by SIGINT
       str = self.ser.readline()
@@ -110,6 +115,7 @@ class ESP(object):
     return str[0:-2]
 
   def write(self, string, axis=None):
+    if self.ser is None: return None
     """ Serial write.
     
     The EOL character is automatically appended
@@ -129,6 +135,7 @@ class ESP(object):
     :return: the reply string
     :rtype: string
     """    
+    if self.ser is None: return None
     with self.lock:
       if check_error:
         self.raise_error()

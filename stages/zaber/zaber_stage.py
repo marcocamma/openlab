@@ -76,7 +76,7 @@ class ZaberStage:
         self.device = device
         self.axis = device.axis(axis)
         #self.commands = datastorage.DataStorage()
-        self.fullstep_resolution = screw_pitchself._get("cloop_steps")
+        self.fullstep_resolution = screw_pitch/self._get("cloop_steps")
         self.microstep_resolution = self.fullstep_resolution/self._get("resolution")
 
         self.encoder_resolution = screw_pitch/self._get("cloop_counts")
