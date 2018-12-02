@@ -22,8 +22,6 @@ class Storage(collections.UserDict):
             if self._filename.is_file():
                 self.read()
             else:
-                folder = self._filename.parent
-                folder.mkdir(parents=True,exist_ok=True)
                 self.data = {}
         else:
             self._autosave = False
