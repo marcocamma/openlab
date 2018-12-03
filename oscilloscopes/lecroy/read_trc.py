@@ -229,7 +229,13 @@ def read_trc(fName, as_volt=True):
             y.byteswap(True)
         if as_volt:
             y = info["VERTICAL_GAIN"] * y - info["VERTICAL_OFFSET"]
-        x = np.arange(1, len(y) + 1) * info["HORIZ_INTERVAL"] + info["HORIZ_OFFSET"]
+        # sequence ?
+        if info['NOM_SUBARRAY_COUNT'] > 1:
+            y = y.reshape( (info['SUBARRAY_COUNT'],-1) )
+            nt = y.shape[1]
+        else:
+            nt = len(y)
+        x = np.arange(1, nt + 1) * info["HORIZ_INTERVAL"] + info["HORIZ_OFFSET"]
     return lecroy_trace(x=x, y=y, info=info)
 
 
