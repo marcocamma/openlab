@@ -1,2 +1,2 @@
 from .lecroy import LeCroyScope
-from .readTrc import readTrc
+from .read_trc import read_trc
