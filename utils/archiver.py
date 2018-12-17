@@ -256,6 +256,7 @@ def main():
         ip=args.ip,
         fname=args.fname,
         log_every=args.log_every,
+        folder="./log/"+args.fname,
         log_size_MB=args.log_size_MB,
         autostart=True,
     )
