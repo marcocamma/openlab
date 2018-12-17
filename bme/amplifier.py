@@ -45,10 +45,13 @@ class AmplifierTiming:
     def setup_cards(self):
         self.pump_trigger.name="Pump"
         self.pump_trigger.channel_bits(value='master_primary')
+        self.pump_trigger.width=10
         self.pc_trigger.name = "Pockell"
         self.pc_trigger.channel_bits(value='master_primary')
+        self.pc_trigger.width=10
         self.chopper_trigger.name="Chopper"
         self.chopper_trigger.channel_bits(value='master_primary')
+        self.amplifier_card.cmd('clock_inhibit',value=1000)
         self.chopper_divider(2)
         self.amplifier_card.apply()
         name = self.amplifier_name + "_on"
@@ -66,7 +69,7 @@ class AmplifierTiming:
             self.burst_gate.channel_bits(value='master_primary')
             burst = self.burst_card
             self.shutter_disable()
-            self.burst_card.connection.send("LINK %d,AB,AND"%self.burst_card.card_num)
+            self.burst_card.box.send("LINK %d,AB,AND"%self.burst_card.card_num)
             self.shutter_trigger.name="Shutter"
             self.shutter_trigger.channel_bits(value='local_primary')
             self.shutter_gate.name = "ShutterGate"
