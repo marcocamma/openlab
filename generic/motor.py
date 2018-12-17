@@ -79,7 +79,8 @@ class Motor:
     def __repr__(self):
         pos = str(np.round( self.wm(), int(-np.log10(self.precision) )))
         posd = str(np.round( self.wmd(), int(-np.log10(self.precision) )))
-        s = f"motor {self.mne}, position {pos}, dial {posd}"
+        #s = f"motor {self.mne}, position {pos}, dial {posd}"
+        s = "motor %s, position %s, dial %s" %(self.mne,pos,dial)
         return s
 
     def __call__(self,value):

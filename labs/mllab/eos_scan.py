@@ -2,7 +2,7 @@ import numpy as np
 import time
 
 from . import thzsetup
-from ..utils import yaml_storage
+from openlab.utils import yaml_storage
 
 import pathlib
 data_folder = pathlib.Path("/data/thz/setup/2018.06")

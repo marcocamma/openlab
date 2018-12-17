@@ -1,5 +1,5 @@
 import pathlib
-from ..utils import yaml_storage
+from openlab.utils import yaml_storage
 
 folder = pathlib.Path(__file__).parent
 storage_fname = folder / "offsets.yaml"

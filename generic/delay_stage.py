@@ -38,7 +38,8 @@ class DelayStage:
     def __init__(self,motor,bounces=1):
         self._motor = motor
         self.bounces = bounces
-        self.mne = f"delay_{self._motor.mne}"
+        #self.mne = f"delay_{self._motor.mne}"
+        self.mne = "delay_%s"%self._motor.mne
 
 
     def move(self,delay_ps):
@@ -68,7 +69,8 @@ class DelayStage:
     def __repr__(self):
         pos = str(np.round( self.wm(), 3))
         posd = str(np.round( self.wmd(), 3))
-        s = f"{self.mne}, position {pos} ps, dial {posd} ps"
+        #s = f"{self.mne}, position {pos} ps, dial {posd} ps"
+        s = "%s, position %s ps, dial %s ps"%(self.mne,pos,posd)
         return s
 
     def __call__(self,value):

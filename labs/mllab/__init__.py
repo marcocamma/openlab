@@ -1,5 +1,5 @@
-from amplifiers import usp
-from amplifiers import elite
-import thzsetup
-import eos_scan
+from .amplifiers import usp
+from .amplifiers import elite
+from . import thzsetup
+from . import eos_scan
 

@@ -1,8 +1,8 @@
-from ..bme import BmeBox
-from ..bme import AmplifierTiming
+from openlab.bme import BmeBox
+from openlab.bme import AmplifierTiming
 from . import config
 
-box = BmeBox(ip="129.20.76.14",storage=config.offset_storage,verbose=config.VERBOSE)
+box = BmeBox(ip="129.20.84.101",storage=config.offset_storage,verbose=config.VERBOSE)
 
 if box is None:
     elite = usp = None

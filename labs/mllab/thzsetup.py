@@ -1,16 +1,16 @@
-#from ..oscilloscopes.lecroy import lecroy
-from ..stages.newport import newportESP
-from ..generic import motor
-from ..utils import yaml_storage
-from ..generic import delay_stage as _delay_stage
-from ..oscilloscopes.lecroy import LeCroyScope
-import config
+#from openlab.oscilloscopes.lecroy import lecroy
+from openlab.stages.newport import newportESP
+from openlab.generic import motor
+from openlab.utils import yaml_storage
+from openlab.generic import delay_stage as _delay_stage
+from openlab.oscilloscopes.lecroy import LeCroyScope
+from . import config
 
 motor.STORAGE = config.offset_storage
 
 
 try:
-    scope = LeCroyScope("129.20.76.26")
+    scope = LeCroyScope("129.20.84.103")
 except OSError:
     scope = None
 

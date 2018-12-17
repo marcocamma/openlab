@@ -373,6 +373,8 @@ class LeCroyScope(object):
         waveform = np.fromstring(msg[22:], wavedesc['dtype'], wavedesc['wave_array_count'])
         if units == "V":
             waveform = waveform*wavedesc['vertical_gain']-wavedesc['vertical_offset']
+        if wavedesc['subarray_count'] > 1:
+            waveform = waveform.reshape( (wavedesc['subarray_count'],-1) )
         return (wavedesc,waveform)
 
     def display_on(self):
