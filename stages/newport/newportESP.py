@@ -86,12 +86,12 @@ class ESP(object):
   >>> esp = NewportESP.ESP('/dev/ttyUSB0') # open communication with controller
   >>> stage = esp.axis(1)   # open axis no 1
   """
-  def __init__(self, port):
+  def __init__(self, port,baud=19200):
     """:param port: Serial port connected to the controller."""
     self.lock = threading.Lock()
     try:
         self.ser = serial.Serial(port=port,
-                             baudrate=19200,
+                             baudrate=baud,
                              bytesize=8,
                              timeout=1,
                              parity='N',
