@@ -6,7 +6,7 @@ import zaber.serial
 import os
 
 # read doc
-doc_file = os.path.join( os.path.dirname(__file__), "zaber_serial_doc.py" )
+doc_file = os.path.join( os.path.dirname(__file__), "zaber_serial_doc.txt" )
 
 with open(doc_file,"r") as f:
     help_rows = f.readlines()
@@ -37,7 +37,8 @@ for help_row in help_rows:
         as_type = None
     else:
         setting,scope,writable,_,description,as_type=help_row
-        as_type = eval(as_type)
+        if as_type.lower() == "int":
+            as_type = int
     writable = writable == "Yes"
     temp = Cmd(setting=setting, scope=scope, writable=writable, 
             doc=description, as_type=as_type)
@@ -95,7 +96,7 @@ class ZaberStage:
         for cmd in commands:
             print("%20s %s"%(cmd,CMD_DICT[cmd].doc))
 
-    def _get(self,cmd,full_answer=False):
+    def _get(self,cmd,full_answer=False,as_type="try"):
         if cmd not in CMD_DICT:
             raise ValueError(cmd + " does not exist")
         else:
@@ -104,7 +105,14 @@ class ZaberStage:
             ans=self.axis.send("get %s"%cmd.setting)
         else:
             ans=self.device.send("get %s"%cmd.setting)
-        return _prepare_ans(ans,full_answer=full_answer,as_type=cmd.as_type)
+        ans = _prepare_ans(ans,full_answer=full_answer,as_type=cmd.as_type)
+        if as_type == "try":
+            try:
+                ans = float(ans)
+            except ValueError:
+                pass
+        return ans
+
 
 
     def _set(self,cmd,value,full_answer=False):
@@ -124,10 +132,10 @@ class ZaberStage:
         self.axis.home()
 
     def pos(self):
-        return self.get("pos")*self.microstep_resolution
+        return self._get("pos")*self.microstep_resolution
 
     def enc_pos(self):
-        return self.get("encoder.counts")*self.encoder_resolution
+        return self._get("encoder.counts")*self.encoder_resolution
 
 
 
