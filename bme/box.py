@@ -6,8 +6,6 @@ import time
 
 from ..utils import yaml_storage
 
-DEFAULT_STORAGE = yaml_storage.Storage(filename="./offsets/bme_data.yaml", autosave=False)
-
 
 ##########################
 # SET/GET VALUES MAPPING #
@@ -294,7 +292,8 @@ class BmeBox:
         """
         storage is an instance of yaml_storage, if None the default is used
         """
-        if storage is None: storage = DEFAULT_STORAGE
+        if storage is None:
+            storage = yaml_storage.Storage(filename="./offsets/bme_data.yaml", autosave=False)
         self.storage = storage
         self.verbose = verbose
         try:

@@ -2,6 +2,7 @@
 # https://www.zaber.com/wiki/Manuals/ASCII_Protocol_Manual
 import sys
 import types
+import time
 import zaber.serial
 import os
 
@@ -18,6 +19,7 @@ help_rows = [row for row in help_rows if row.lstrip()[0] != "#"]
 
 help_rows = [ [elem.strip() for elem in row.split("\t")] for row in help_rows]
 
+MAXSPEED = 153600
 
 class Cmd:
     __slots__ = "setting","scope","writable","doc","as_type"
@@ -64,31 +66,38 @@ def make_property(name,doc=None):
     )
 
 
-
-class ZaberStage:
-
-
+class ZaberStageProperties:
     for cmd in CMD_DICT:
         locals()[cmd] = make_property(cmd)
 
-    def __init__(self,port="/dev/ttyACM1",axis=1,screw_pitch=1.270e-3):
-        port = zaber.serial.AsciiSerial(port)
-        device = zaber.serial.AsciiDevice(port,1)
+    def __init__(self,stage):
+        self.stage = stage
+        self._get = stage._get
+        self._set = stage._set
+
+
+class ZaberStage:
+
+    def __init__(self,port="/dev/ttyACM1",axis=1,screw_pitch=1.270):
+        """
+        Parameters
+        ----------
+        screw_pitch: in mm
+        """
+        try:
+            port = zaber.serial.AsciiSerial(port)
+            device = zaber.serial.AsciiDevice(port,1)
+        except Exception as err:
+            print("Could not connect to zaber stage, error was: ",err)
+            return None
         self.device = device
         self.axis = device.axis(axis)
+        self.settings = ZaberStageProperties(self)
         #self.commands = datastorage.DataStorage()
         self.fullstep_resolution = screw_pitch/self._get("cloop_steps")
         self.microstep_resolution = self.fullstep_resolution/self._get("resolution")
 
         self.encoder_resolution = screw_pitch/self._get("cloop_counts")
-
-        for row in help_rows:
-#            cmd = Command(device,axis=axis,help_row=row)
-#            name = row[0].replace(".","_")
-#            prop = property(cmd.get,cmd.set) if cmd.writable else property(cmd.get)
-    #        setattr(self,name,prop)
-#            self.commands[row[0]] = prop#Command(device,axis=axis,help_row=row)
-            pass
 
     def help(self):
         commands = list(CMD_DICT.keys())
@@ -131,14 +140,36 @@ class ZaberStage:
     def home(self):
         self.axis.home()
 
-    def pos(self):
+    def get_position(self):
         return self._get("pos")*self.microstep_resolution
 
+    def move(self,value,wait=False):
+        steps = value/self.microstep_resolution
+        self.axis.send("move abs %d"%int(steps))
+        if wait: self.wait()
+
+    def moverel(self,distance,wait=False):
+        steps = distance/self.microstep_resolution
+        self.axis.send("move rel %d"%int(steps))
+        if wait: self.wait()
+
+    def moveatspeed(self,speed,wait=False):
+        steps_per_sec = speed/self.microstep_resolution
+        self.axis.send("move vel %d"%int(steps_per_sec))
+        if wait: self.wait()
+
+    def wait(self):
+        done = False
+        while not done:
+            done = self.axis.send('').device_status == "IDLE"
+            time.sleep(0.01)
+
+    def stop(self):
+        self.axis.send("stop")
+
+    def setdefaultspeed(self):
+        self.maxspeed = MAXSPEED
+
     def enc_pos(self):
-        return self._get("encoder.counts")*self.encoder_resolution
-
-
-
-
-
+        return self._get("encoder_count_calibrated")*self.encoder_resolution
 

@@ -11,6 +11,7 @@ class Storage(collections.UserDict):
     autosave is True
     """
     def __init__(self,*args,autosave=True,filename=None,**kwargs):
+        print("Setting up storage, filename:",str(filename))
 
         self._autosave = autosave
         self._filename = filename

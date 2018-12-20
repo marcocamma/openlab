@@ -9,7 +9,7 @@ import time
 
 from ..utils import  yaml_storage
 
-STORAGE = yaml_storage.Storage(filename="./offsets/", autosave=True)
+STORAGE = None
 
 
 logging.basicConfig(format='%(asctime)s %(message)s',datefmt="%Y-%m-%d %H:%M:%S")
@@ -39,6 +39,8 @@ class Motor:
         self.dial_target_pos = None
         self.polltime = polltime
         self.timeout = timeout
+        if STORAGE is None: # could (and should) be set at setup level
+            globals()['STORAGE'] = yaml_storage.Storage(filename="./offsets/", autosave=True)
 
     def set(self,value):
         current_dial = self.wmd()
@@ -80,7 +82,7 @@ class Motor:
         pos = str(np.round( self.wm(), int(-np.log10(self.precision) )))
         posd = str(np.round( self.wmd(), int(-np.log10(self.precision) )))
         #s = f"motor {self.mne}, position {pos}, dial {posd}"
-        s = "motor %s, position %s, dial %s" %(self.mne,pos,dial)
+        s = "motor %s, position %s, dial %s" %(self.mne,pos,posd)
         return s
 
     def __call__(self,value):

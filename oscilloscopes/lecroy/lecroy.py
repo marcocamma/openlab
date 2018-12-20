@@ -177,8 +177,8 @@ class LeCroyScope(object):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             self.sock.connect((host, port))
-        except OSError:
-            print("Cannot connect to the scope %s"%host)
+        except OSError as err:
+            print("Cannot connect to the scope %s, error was %s"%(host,err))
             return
         self.sock.settimeout(timeout)
         self.clear()

@@ -134,6 +134,7 @@ class AmplifierTiming:
         current_dial = self.read_amplifier_delay(as_dial=True)
         newoffset = current_dial-value
         self.storage('pump_delay_offset',value=newoffset)
+        self.save()
 
     def read_amplifier_delay(self,as_dial=False):
         value = float(self.pump_trigger.read_delay())*1e-6

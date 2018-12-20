@@ -2,12 +2,11 @@ import numpy as np
 import time
 
 from . import thzsetup
-from openlab.utils import yaml_storage
-
+from . import config
 import pathlib
-data_folder = pathlib.Path("/data/thz/setup/2018.06")
 
-storage = yaml_storage.Storage(filename=str(data_folder/"storage"),autosave=True)
+storage = config.storage
+data_folder = pathlib.Path("/data/thz/setup/2018.06")
 
 ds = thzsetup.delay_stage
 scope = thzsetup.scope

@@ -2,9 +2,8 @@ import pathlib
 from openlab.utils import yaml_storage
 
 folder = pathlib.Path(__file__).parent
-storage_fname = folder / "offsets.yaml"
-
+storage_fname = folder / "storage.yaml"
 VERBOSE=False
 
-offset_storage = yaml_storage.Storage(filename=str(storage_fname), autosave=False)
+storage = yaml_storage.Storage(filename=str(storage_fname), autosave=True)
 
