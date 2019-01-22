@@ -35,6 +35,7 @@ class Reader(object):
         folder="./log",
         autostart=False,
         log_size_MB=10,
+        save_cvs = False,
     ):
         """
         Parameters
@@ -51,6 +52,7 @@ class Reader(object):
         self.addr = addr
         self._stop = False
         self.done = False
+        self.save_cvs = save_cvs
         if fname == "auto":
             fname = "%s:%s" % (ip, port)
         self.fname = fname
@@ -95,9 +97,11 @@ class Reader(object):
         if not f.exists():
             f.parent.mkdir(parents=True, exist_ok=True)
 
-        datastorage.resample(self.log_every, on="time").mean().to_hdf(
-            str(f), key="/data"
-        )
+        mean = datastorage.resample(self.log_every, on="time").mean()
+        mean.to_hdf(str(f),key="/data")
+        if self.save_cvs:
+            fname = str(f)[:-3] + ".csv"
+            mean.to_csv(fname)
 
         timev = datastorage["time"]
         mem = self.datastorage.memory_usage(deep=True).sum()  # in bytes
@@ -259,6 +263,7 @@ def main():
         folder="./log/"+args.fname,
         log_size_MB=args.log_size_MB,
         autostart=True,
+        save_cvs=True
     )
     while True:
         print(reader)
