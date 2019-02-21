@@ -32,6 +32,7 @@ import numpy as np
 import socket
 import io
 import os
+import time
 # data types in lecroy binary blocks, where:
 # length  -- byte length of type
 # string  -- string representation of type

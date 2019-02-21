@@ -5,6 +5,7 @@ from openlab.generic import motor
 motor.STORAGE = config.storage
 from openlab.generic import delay_stage as _delay_stage
 from openlab.oscilloscopes.lecroy import LeCroyScope
+from datastorage import DataStorage
 
 
 try:
@@ -15,18 +16,19 @@ except OSError:
 
 esp301 = openlab.stages.newportESP.ESP("/dev/ttyUSB0")
 if esp301 is not None:
-    esp301_ax1 = esp301.axis(1)
-    esp301_ax1.on()
-
-    stage_mot = motor.Motor("stage1",
-        esp301_ax1.move_to,
-        esp301_ax1.get_position,
-        wait= esp301_ax1.wait
-    )
-
-    delay_stage2 = _delay_stage.DelayStage(stage_mot)
+    xyz = DataStorage()
+    for axis in (1,2,3):
+        esp301_ax = esp301.axis(axis)
+        name = "axis%d"%axis
+        esp301_ax.on()
+        stage_mot = motor.Motor(name,
+            esp301_ax.move_to,
+            esp301_ax.get_position,
+            wait= esp301_ax.wait
+        )
+        xyz[name] = stage_mot
 else:
-    delay_stage2 = None
+    xyz = None
 
 stage = openlab.stages.ZaberStage("/dev/ttyACM0")
 if stage is not None:
