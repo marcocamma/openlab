@@ -42,9 +42,10 @@ class DelayStage:
         self.mne = "delay_%s"%self._motor.mne
 
 
-    def move(self,delay_ps):
+    def move(self,delay_ps,wait=False):
         pos = _ps_to_mm(delay_ps,bounces=self.bounces)
         self._motor.move(pos)
+        if wait: self.wait()
 
     def mvr(self,delta_delay_ps):
         self._motor.mvr(_ps_to_mm(delta_delay_ps))
@@ -61,6 +62,9 @@ class DelayStage:
 
     def wait(self):
         self._motor.wait()
+
+    def get_info_str(self):
+        return self._motor.get_info_str()
 
     def set(self,value):
         pos = _ps_to_mm(value)

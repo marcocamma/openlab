@@ -68,6 +68,7 @@ class Motor:
         dial = value + offset
         self.dial_target_pos = dial
         self.mvd(dial)
+        if wait: self.wait()
 
     def _wait(self,timeout=None):
         if self.dial_target_pos is None: return
@@ -85,5 +86,14 @@ class Motor:
         s = "motor %s, position %s, dial %s" %(self.mne,pos,posd)
         return s
 
+    def get_info_str(self):
+        ret = ""
+        offset = STORAGE['%s/offset'%self.mne]
+        ret += "motor name: %s\n"%self.mne
+        ret += "offset: %s\n"%str(offset)
+        ret += "precision: %s\n"%str(self.precision)
+        return ret
+
+        
     def __call__(self,value):
         self.move(value)

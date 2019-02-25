@@ -3,9 +3,17 @@ from collections.abc import Iterable
 import itertools
 import numpy as np
 import datetime
-from tqdm import tqdm
-
+import tqdm
+import datastorage
 from datastorage import DataStorage as ds
+
+
+def _get_npoints(positions):
+    positions = np.asarray(positions)
+    if positions.ndim == 1: positions = positions[:,np.newaxis]
+    npoints = np.asarray([len(np.unique(axis)) for axis in positions.T])
+    if len(npoints) == 1: npoints = int(npoints)
+    return npoints
 
 
 def now(as_str=True):
@@ -19,7 +27,7 @@ def _general_scan(motors=None,positions=None,acquire=None,fname=None,force=False
 
     Parameters
     ----------
-    motors : list|tutle
+    motors : list|tuple
         each item should be a motor/stage
     positions : 2D arrayable
         2D array scan_point,num_mot
@@ -28,8 +36,8 @@ def _general_scan(motors=None,positions=None,acquire=None,fname=None,force=False
         items to pack as output
         the keys starting with _ will only be included one (and not in all
         scan points)
-        example: def read(): time.sleep(1); return dict(value=3,_x=np.arange(10))
-    like data structure
+        example: def read(): time.sleep(1); return dict(val=3,_x=np.arange(10))
+        like data structure
     """
 
     if fname is None:
@@ -46,7 +54,12 @@ def _general_scan(motors=None,positions=None,acquire=None,fname=None,force=False
     info = ds()
     info.num_motors = len(motors)
     info.motors = [m.mne for m in motors]
+    info.motors_paramters = ds()
+    for m in motors:
+        info.motors_paramters[m.mne] = m.get_info_str()
+
     info.positions = np.squeeze(positions)
+    info.npoints_per_axis = _get_npoints(positions)
     info.time_start = now()
 
 
@@ -62,9 +75,14 @@ def _general_scan(motors=None,positions=None,acquire=None,fname=None,force=False
         print("Will save in",str(fname))
 
     data_buffer = []
-    for iscan,acquire_positions in tqdm(enumerate(positions)):
+    # can't use enumerate because of tqdm missing support (at least for 4.11)
+    for iscan in tqdm.trange(len(positions)):
+        acquire_positions = positions[iscan]
 
         tosave = ds(info=info)
+        # first axis is scan points
+        tosave.positions = np.squeeze(positions[:iscan+1])
+        tosave.npoints_per_axis = _get_npoints(positions[:iscan+1])
 
         # ask to move motors to positions
         for motor,position in zip(motors,acquire_positions):
@@ -115,4 +133,26 @@ def r2scan(m1,s1,e1,n1,m2,s2,e2,n2,**pars):
     p2 = np.linspace(s2,e2,n2+1)+m2.wm()
     positions = np.asarray( list(itertools.product(p1,p2)) )
     return _general_scan(motors=motors,positions=positions,**pars)
+
+
+def read_2dscan(fname,keys="all"):
+    data = datastorage.read(fname)
+    if data.info.num_motors != 2:
+        print("Did not find 2 motors names in num_motors")
+        return
+    size = list(_get_npoints(data.info.positions))
+    for iaxis,axis in enumerate(data.info.motors):
+        data[axis] = data.info.positions[:,iaxis].reshape(size)
+    if keys == "all" : keys = data.keys()
+    for key in keys:
+        if isinstance(data[key],np.ndarray):
+            try:
+                newsize = size.copy()
+                if data[key].ndim == 2: newsize.append( -1 )
+                data[key] = data[key].reshape( newsize )
+            except ValueError:
+                pass
+    return data
+
+
 
