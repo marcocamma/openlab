@@ -149,7 +149,7 @@ def read_2dscan(fname,keys="all"):
             try:
                 newsize = size.copy()
                 if data[key].ndim == 2: newsize.append( -1 )
-                data[key] = data[key].reshape( newsize )
+                data[key] = np.squeeze(data[key].reshape( newsize ))
             except ValueError:
                 pass
     return data
