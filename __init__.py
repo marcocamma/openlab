@@ -4,3 +4,4 @@ from . import stages
 from . import utils
 from . import generic
 from . import thorlabs
+from .generic import scan
