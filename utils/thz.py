@@ -13,6 +13,19 @@ _n0 = dict(
 )
 
 
+def analyze_pyroelectric(traces,percentile=(15,85)):
+
+    """
+    analyze trace recorder with pyroelectric detector
+
+         -----    ----
+         |   |    |  |
+    _____|   |____|  |___
+    """
+    data = np.percentile(traces,percentile,axis=-1)
+    return data[1]-data[0]
+
+
 
 def field_from_EOS(dI_over_I=0.1,material="ZnTe",crystal_thickness=500e-6,
         transmission_crystal=0.5,probe_wavelength=800e-9):
