@@ -141,8 +141,13 @@ def read_2dscan(fname,keys="all"):
         print("Did not find 2 motors names in num_motors")
         return
     size = list(_get_npoints(data.info.positions))
+    #size = list(data.npoints_per_axis)
     for iaxis,axis in enumerate(data.info.motors):
         data[axis] = data.info.positions[:,iaxis].reshape(size)
+        if iaxis == 1:
+            data[axis+"_1d"] = data[axis][0]
+        else:
+            data[axis+"_1d"] = data[axis][:,0]
     if keys == "all" : keys = data.keys()
     for key in keys:
         if isinstance(data[key],np.ndarray):
@@ -154,5 +159,7 @@ def read_2dscan(fname,keys="all"):
                 pass
     return data
 
-
+def read_1dscan(fname,keys="all"):
+    data = datastorage.read(fname)
+    return data
 
