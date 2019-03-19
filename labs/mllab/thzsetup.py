@@ -7,6 +7,7 @@ from openlab.generic import delay_stage as _delay_stage
 from openlab.oscilloscopes.lecroy import LeCroyScope
 from datastorage import DataStorage
 
+print("Laboratory convention right handed,y=vertical,z=downbeam")
 
 try:
     scope = LeCroyScope("129.20.84.103")
@@ -17,9 +18,10 @@ except OSError:
 esp301 = openlab.stages.newportESP.ESP("/dev/ttyUSB0")
 if esp301 is not None:
     xyz = DataStorage()
-    for axis in (1,2,3):
+    names = "y x z".split()
+    for (axis,name) in zip((1,2,3),names):
         esp301_ax = esp301.axis(axis)
-        name = "axis%d"%axis
+        #name = "axis%d"%axis
         esp301_ax.on()
         stage_mot = motor.Motor(name,
             esp301_ax.move_to,
