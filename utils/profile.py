@@ -18,16 +18,22 @@ def fit_1d(x,y,model="gaussian"):
 
 def analyze_2dprofile(x,y,img,model="gaussian",plot=True):
 
-    if x.ndim == 2: x=x[:,0]
-    if y.ndim == 2: y=y[0]
+    if x.ndim == 2: x=x[0]
+    if y.ndim == 2: y=y[:,0]
 
     def fit(x,intensity):
         out = fit_1d(x,intensity,model=model)
-        print(out.params)
+        #print(out.params)
         return out,out.best_fit,out.params["fwhm"].value
 
     projx = img.mean(0)
     projy = img.mean(1)
+
+    if projx.shape != x.shape:
+        print("analyze_2dprofile problem with shapes, trasponsing img")
+        img = img.T
+        projx = img.mean(0)
+        projy = img.mean(1)
 
     ox,fx,fwhmx = fit( x,projx )
     oy,fy,fwhmy = fit( y,projy )
@@ -48,6 +54,24 @@ def analyze_2dprofile(x,y,img,model="gaussian",plot=True):
         ax.set_title("fwhm = %.1f" % fwhmx)
     out = DataStorage( x=x,y=y,data=img,fitx=ox,fity=oy)
     return out
+
+def analyze_1dprofile(x,y,img,model="gaussian",plot=True):
+
+    def fit(x,intensity):
+        out = fit_1d(x,intensity,model=model)
+        print(out.params)
+        return out,out.best_fit,out.params["fwhm"].value
+
+    o,f,fwhm = fit( x,y )
+
+    if plot:
+        ax,fig=plt.subplots()
+        ax.plot( x ,y )
+        ax.plot( x,f )
+        ax.set_title("fwhm = %.1f" % fwhm)
+    out = DataStorage( x=x,y=y,fit=o)
+    return out
+
 
 def transmission_trough_pinhole(opening,intensity=1,beam_fwhm=1):
     """ Transmission of a gaussian beam trough a pinhole of a given size """
