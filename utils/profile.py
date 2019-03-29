@@ -55,7 +55,7 @@ def analyze_2dprofile(x,y,img,model="gaussian",plot=True):
     out = DataStorage( x=x,y=y,data=img,fitx=ox,fity=oy)
     return out
 
-def analyze_1dprofile(x,y,img,model="gaussian",plot=True):
+def analyze_1dprofile(x,y,model="gaussian",plot=True):
 
     def fit(x,intensity):
         out = fit_1d(x,intensity,model=model)
@@ -66,9 +66,9 @@ def analyze_1dprofile(x,y,img,model="gaussian",plot=True):
 
     if plot:
         ax,fig=plt.subplots()
-        ax.plot( x ,y )
-        ax.plot( x,f )
-        ax.set_title("fwhm = %.1f" % fwhm)
+        fig.plot( x ,y )
+        fig.plot( x,f )
+        fig.set_title("fwhm = %.1f" % fwhm)
     out = DataStorage( x=x,y=y,fit=o)
     return out
 
