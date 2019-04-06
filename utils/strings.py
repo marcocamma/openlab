@@ -1,5 +1,6 @@
 
 import re
+import sys
 
 _time2value = dict( fs = 1e-15, ps = 1e-12, ns = 1e-9, us = 1e-6, ms = 1e-3, s = 1)
 
@@ -37,3 +38,24 @@ def time_to_str(delay,fmt="%+.0f"):
     else:
         ret = str(delay) +"s"
     return ret
+
+def terminal_size():
+    """returns a tuple with (nrows,ncols) of current terminal"""
+    import termios, fcntl, struct, sys
+    s = struct.pack("HHHH", 0, 0, 0, 0)
+    fd_stdout = sys.stdout.fileno()
+    x = fcntl.ioctl(fd_stdout, termios.TIOCGWINSZ, s)
+    (rows,cols,xpixel,ypixel)=  struct.unpack("HHHH", x)
+    return (rows,cols)
+
+
+def notice(string):
+    """prints a string starting from the beginning of the line and spanning the
+    entire terminal columns, useful for updating values ...
+    notice("this is the first value 1.2"); sleep(1); notice("this is the second one 1.4 that will mask the first...")
+    """
+    (nrows,ncols)=terminal_size()
+    format = "\r%%-%ds" % ncols
+    sys.stdout.write( format % string)
+    sys.stdout.flush()
+

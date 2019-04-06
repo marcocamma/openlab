@@ -17,7 +17,7 @@ __maintainer__ = "Marco Cammarata"
 __email__ = "marcocamma@gmail.com"
 
 
-from .motor import Motor
+from .motor import Motor,get_fakemot
 
 from scipy.constants import speed_of_light as c_light
 
@@ -80,3 +80,29 @@ class DelayStage:
     def __call__(self,value):
         self.move(value)
 
+
+def delaystage(motor,bounces=1):
+    def wmd():
+        stage_mm = motor.wm()
+        delay_ps = _mm_to_ps(stage_mm,bounces=bounces)
+        return delay_ps
+
+    def mvd(delay_ps,wait=False):
+        pos = _ps_to_mm(delay_ps,bounces=bounces)
+        motor.move(pos,wait=wait)
+
+    def set(delay_ps):
+        """ set current position to delay_ps """
+        pos = _ps_to_mm(delay_ps,bounces=bounces)
+        motor.set(pos)
+
+    mne = "delay_%s"%motor.mne
+    precision = _mm_to_ps(motor.precision)
+    m = Motor(mne,mvd,wmd,set=set,precision=precision,parents=motor,units="ps")
+    return m
+
+
+def get_fakestage():
+    m = get_fakemot()
+    s = delaystage(m)
+    return s
