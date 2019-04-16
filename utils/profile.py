@@ -73,21 +73,20 @@ def analyze_1dprofile(x,y,model="gaussian",plot=True):
     return out
 
 
-def transmission_trough_pinhole(opening,intensity=1,beam_fwhm=1):
+def transmission_trough_pinhole(diameter,intensity=1,beam_fwhm=1):
     """ Transmission of a gaussian beam trough a pinhole of a given size """
     sigma = beam_fwhm/2.35482004503 # sqrt(8*ln2)
-    return intensity*(1-np.exp(-opening**2/2/sigma**2))
+    radius = diameter/2
+    return intensity*(1-np.exp(-radius**2/2/sigma**2))
 
-def fit_transmission_trough_pinhole(opening,intensity,fix_intensity=False,plot=True):
+def fit_transmission_trough_pinhole(diameter,intensity,fix_intensity=False,plot=True):
     import lmfit
     model = lmfit.Model(transmission_trough_pinhole)
-    pars = model.make_params( intensity=intensity.max(), beam_fwhm=np.mean(opening))
+    pars = model.make_params( intensity=intensity.max(), beam_fwhm=np.mean(diameter))
     if fix_intensity: pars['intensity'].vary = False
-    res = model.fit(intensity,x=opening)
+    res = model.fit(intensity,x=diameter)
     if plot:
         res.plot()
     return res
-
-
 
 
