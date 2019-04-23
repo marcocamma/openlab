@@ -21,7 +21,7 @@ def now(as_str=True):
     if as_str: n = str(n)
     return n
 
-def _general_scan(motors=None,positions=None,acquire=None,fname=None,force=False):
+def _general_scan(motors=None,positions=None,acquire=None,fname=None,force=False,save_at_every_scan_step=False):
     """
     general porpouse scanning macro
 
@@ -51,16 +51,16 @@ def _general_scan(motors=None,positions=None,acquire=None,fname=None,force=False
     positions = np.asarray( positions )
     if positions.ndim == 1: positions = positions[:,np.newaxis]
 
-    info = ds()
-    info.num_motors = len(motors)
-    info.motors = [m.mne for m in motors]
-    info.motors_paramters = ds()
+    info = dict()
+    info["num_motors"] = len(motors)
+    info["motors"] = [m.mne for m in motors]
+    info["motors_paramters"] = dict()
     for m in motors:
-        info.motors_paramters[m.mne] = m.get_info_str()
+        info["motors_paramters"][m.mne] = m.get_info_str()
 
-    info.positions = np.squeeze(positions)
-    info.npoints_per_axis = _get_npoints(positions)
-    info.time_start = now()
+    info["positions"] = np.squeeze(positions)
+    info["npoints_per_axis"] = _get_npoints(positions)
+    info["time_start"] = now()
 
 
     # ensure we are using pathlib
@@ -76,36 +76,43 @@ def _general_scan(motors=None,positions=None,acquire=None,fname=None,force=False
 
     data_buffer = []
     # can't use enumerate because of tqdm missing support (at least for 4.11)
-    for iscan in tqdm.trange(len(positions)):
-        acquire_positions = positions[iscan]
+    try:
+        for iscan in tqdm.trange(len(positions)):
+            acquire_positions = positions[iscan]
 
-        tosave = ds(info=info)
-        # first axis is scan points
-        tosave.positions = np.squeeze(positions[:iscan+1])
-        tosave.npoints_per_axis = _get_npoints(positions[:iscan+1])
+            tosave = dict(info=info)
+            # first axis is scan points
+            tosave["positions"] = np.squeeze(positions[:iscan+1])
+            tosave["npoints_per_axis"] = _get_npoints(positions[:iscan+1])
 
-        # ask to move motors to positions
-        for motor,position in zip(motors,acquire_positions):
-            motor.move(position)
+            # ask to move motors to positions
+            for motor,position in zip(motors,acquire_positions):
+                motor.move(position)
 
-        # wait until they arrive
-        for motor in motors: motor.wait()
+            # wait until they arrive
+            for motor in motors: motor.wait()
 
-        _data = acquire()
-        data_buffer.append( _data )
+            _data = acquire()
+            data_buffer.append( _data )
 
-        for key in _data:
-            if key[0] == "_": continue
-            tosave[key] = np.asarray( [data[key] for data in data_buffer] )
-            tosave[key] = np.squeeze( tosave[key] )
-        keys_tosave_once = list(_data.keys())
-        keys_tosave_once = [key for key in keys_tosave_once if key[0] == "_"]
+            for key in _data:
+                if key[0] == "_": continue
+                tosave[key] = np.asarray( [data[key] for data in data_buffer] )
+                tosave[key] = np.squeeze( tosave[key] )
+            keys_tosave_once = list(_data.keys())
+            keys_tosave_once = [key for key in keys_tosave_once if key[0] == "_"]
 
-        for key in keys_tosave_once:
-            tosave[key.strip("_")] = _data[key]
-        tosave.info.time_last_save = now()
+            for key in keys_tosave_once:
+                tosave[key.strip("_")] = _data[key]
+            tosave["info"]["time_last_save"] = now()
+            tosave_last_finished = tosave
 
-        tosave.save(str(fname))
+            if save_at_every_scan_step: ds(tosave_last_finished).save(str(fname))
+    except Exception as e:
+        print("Data collection ended because of exception",str(e))
+    finally:
+        print("Saving",str(fname))
+        ds(tosave_last_finished).save(str(fname))
     return tosave
 
 
