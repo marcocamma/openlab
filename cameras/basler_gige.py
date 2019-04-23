@@ -1,5 +1,6 @@
-from pypylon import pylon
 import time
+import numpy as np
+from pypylon import pylon
 import cv2
 
 def get_camera(ip=None,num=0):
@@ -34,7 +35,10 @@ class Camera(object):
         self._get_info()
 
     def set_gain(self,value):
-        self.camera.GainRaw.SetValue(value)
+        try:
+            self.camera.GainRaw.SetValue(value)
+        except Exception as err:
+            raise ValueError(err.args[0])
 
     def get_gain(self):
         return self.camera.GainRaw()
@@ -42,8 +46,11 @@ class Camera(object):
     gain = property(get_gain,set_gain)
 
     def set_exp_time(self,value):
-        value_us = int(value*1e6)
-        self.camera.ExposureTimeAbs.SetValue(value_us)
+        try:
+            value_us = int(value*1e6)
+            self.camera.ExposureTimeAbs.SetValue(value_us)
+        except Exception as err:
+            raise ValueError(err.args[0])
 
     def get_exp_time(self):
         value_us = self.camera.ExposureTimeAbs()
@@ -73,6 +80,10 @@ class Camera(object):
         if as_array:
             image = image.GetArray()
         return image
+
+    def acquire(self,naverage=1):
+        images = np.asarray([self.get_image() for _ in range(naverage)])
+        return images.mean(axis=0)
 
     def get_images_old(self,timeout=5000):
         camera = self.camera
