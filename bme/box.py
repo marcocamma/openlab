@@ -145,6 +145,9 @@ class Trigger:
         return self.bme_card.channel_bits(channel=self.channel, value=value,
                 auto_apply=auto_apply)
 
+    def lowZ(self): self.cmd('termination',value="lowZ")
+    def highZ(self): self.cmd('termination',value="highZ")
+
     def read_delay(self):
         value = self.cmd("delay")
         return value
