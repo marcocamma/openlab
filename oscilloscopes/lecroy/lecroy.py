@@ -214,6 +214,12 @@ class LeCroyScope(object):
         header = struct.pack(headerformat, 129, 1, 1, 0, len(msg))
         self.sock.sendall(header + msg.encode('ascii'))
 
+    def get_16bits(self):
+        self.send("COMM_FORMAT DEF9,WORD,BIN")
+
+    def get_8bits(self):
+        self.send("COMM_FORMAT DEF9,BYTE,BIN")
+
     def recv(self,as_str=True):
         '''
         Return a message from the scope.
@@ -345,9 +351,9 @@ class LeCroyScope(object):
 
         # determine data type
         if wavedesc['comm_type'] == 0:
-            wavedesc['dtype'] = np.int8()
+            wavedesc['dtype'] = np.int8
         elif wavedesc['comm_type'] == 1:
-            wavedesc['dtype'] = np.int16()
+            wavedesc['dtype'] = np.int16
         else:
             raise Exception('unknown comm_type.')
         return wavedesc
