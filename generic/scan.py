@@ -21,7 +21,7 @@ def now(as_str=True):
     if as_str: n = str(n)
     return n
 
-def _general_scan(motors=None,positions=None,acquire=None,fname=None,force=False,save_at_every_scan_step=False):
+def _general_scan(motors=None,positions=None,acquire=None,fname=None,force=False,save_at_every_scan_step=False,comment=None):
     """
     general porpouse scanning macro
 
@@ -38,6 +38,10 @@ def _general_scan(motors=None,positions=None,acquire=None,fname=None,force=False
         scan points)
         example: def read(): time.sleep(1); return dict(val=3,_x=np.arange(10))
         like data structure
+    comment : None or str
+        comment string will be written in info/comment
+    save_at_every_scan_step : bool
+        if True, data will be saved after every scan position
     """
 
     if fname is None:
@@ -55,6 +59,7 @@ def _general_scan(motors=None,positions=None,acquire=None,fname=None,force=False
     info["num_motors"] = len(motors)
     info["motors"] = [m.mne for m in motors]
     info["motors_paramters"] = dict()
+    if comment is not None: info["comment"] = comment
     for m in motors:
         info["motors_paramters"][m.mne] = m.get_info_str()
 
