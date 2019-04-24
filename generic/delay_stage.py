@@ -81,7 +81,7 @@ class DelayStage:
         self.move(value)
 
 
-def delaystage(motor,bounces=1):
+def delaystage(motor,bounces=1,precision="auto"):
     def wmd():
         stage_mm = motor.wm()
         delay_ps = _mm_to_ps(stage_mm,bounces=bounces)
@@ -97,7 +97,7 @@ def delaystage(motor,bounces=1):
         motor.set(pos)
 
     mne = "delay_%s"%motor.mne
-    precision = _mm_to_ps(motor.precision)
+    if precision == "auto": precision = _mm_to_ps(motor.precision)
     m = Motor(mne,mvd,wmd,set=set,precision=precision,parents=motor,units="ps")
     return m
 
