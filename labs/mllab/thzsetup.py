@@ -40,6 +40,6 @@ if stage is not None:
         wait= stage.wait,
         precision=1e-4, # precision is used for printing only
     )
-    delay_stage = _delay_stage.DelayStage(stage_mot)
+    delay_stage = _delay_stage.delaystage(stage_mot,precision=2e-3)
 else:
     delay_stage = None
