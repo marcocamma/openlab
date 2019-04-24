@@ -33,6 +33,8 @@ import socket
 import io
 import os
 import time
+import yaml
+
 # data types in lecroy binary blocks, where:
 # length  -- byte length of type
 # string  -- string representation of type
@@ -364,11 +366,16 @@ class LeCroyScope(object):
             desc['horiz_offset']
         return t
 
-    def get_waveform(self, channel,units="V"):
+    def get_waveform(self, channel,units="V",serialize=False):
         '''
         Capture the raw data for `channel` from the scope and return a tuple
         containing the wave descriptor and a numpy array of the digitized 
         scope readout.
+        Parameters
+        ----------
+        serialize : bool
+            if True the waveform descriptor will be returned as string
+            it makes it easier to save in hdf5
         ''' 
         if channel not in range(1, 5):
             raise Exception('channel must be in %s.' % str(range(1, 5)))
@@ -382,7 +389,8 @@ class LeCroyScope(object):
             waveform = waveform*wavedesc['vertical_gain']-wavedesc['vertical_offset']
         if wavedesc['subarray_count'] > 1:
             waveform = waveform.reshape( (wavedesc['subarray_count'],-1) )
-        return (wavedesc,waveform)
+        if serialize: wavedesc = serialize_descr(wavedesc)
+        return wavedesc,waveform
 
     def display_on(self):
         self.send("DISP ON")
@@ -427,3 +435,9 @@ class LeCroyScope(object):
         r["SWEEPS"]=int(float(a[-1]))
         return r
 
+def serialize_descr(info_dict):
+    info_dict["how_to_read"] = "use openlab.oscilloscopes.lecroy.deserialize_descr"
+    return yaml.dump(info_dict)
+
+def deserialize_descr(string):
+    return yaml.load(string)
