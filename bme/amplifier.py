@@ -39,7 +39,7 @@ class AmplifierTiming:
 
 
         self._set_chopper_duty_cycle()
-        self.shutter_disable()
+        # self.shutter_disable() # commented because we are using it as signal for second chopper
 
 
     def setup_cards(self):
