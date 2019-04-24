@@ -1,2 +1,3 @@
-{RUN_NUMBER: 10, axis3/offset: 0.3, elite/pc_delay: A+2.700000, elite/pump_delay_offset: 1.0e-06,
-  stage/offset: 33.40070234375, usp/pc_delay: A+2.700000, usp/pump_delay_offset: 0.0}
+{EOS_FOLDER: /data/thz/2019.04/eos, EOS_RUN_NUMBER: 103, RUN_NUMBER: 18, axis3/offset: 0.3,
+  elite/pc_delay: A+2.700000, elite/pump_delay_offset: 1.0e-06, stage/offset: 58.296075781249996,
+  usp/pc_delay: A+3.092, usp/pump_delay_offset: 0.0}
