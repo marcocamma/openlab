@@ -86,10 +86,17 @@ class Motor:
         if self.dial_target_pos is None: return
         if timeout is None: timeout = self.timeout
         t0 = time.time()
+
         while( time.time()-t0 < timeout and np.abs(self.wmd()-self.dial_target_pos)>self.precision) :
             time.sleep(self.polltime)
+
+        # wait a little longer in case it does not reach the target position
         if np.abs(self.wmd()-self.dial_target_pos)>self.precision:
-            logger.warn("Motor, %s, did not reached target position"%self.mne)
+            time.sleep(5*self.polltime)
+
+        if np.abs(self.wmd()-self.dial_target_pos)>self.precision:
+            diff = np.abs(self.wmd()-self.dial_target_pos)
+            logger.warn("Motor, %s, did not reached target position (diff %e)"%(self.mne,diff))
 
     def __repr__(self):
         pos = str(np.round( self.wm(), int(-np.log10(self.precision)+1 )))
