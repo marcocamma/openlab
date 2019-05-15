@@ -18,6 +18,6 @@ try:
             amplifier_card=box.dg3,
             burst_card=box.dg4)
 except Exception as e:
-    print("Could not connect to timing box, error was",e)
+    print("Could define amplifier objects, error was",e)
     elite = usp = None
 
