@@ -20,26 +20,13 @@ if esp301 is not None:
     xyz = DataStorage()
     names = "y x z".split()
     for (axis,name) in zip((1,2,3),names):
-        esp301_ax = esp301.axis(axis)
-        #name = "axis%d"%axis
-        esp301_ax.on()
-        stage_mot = motor.Motor(name,
-            esp301_ax.move_to,
-            esp301_ax.get_position,
-            wait= esp301_ax.wait
-        )
-        xyz[name] = stage_mot
+        xyz[name] = esp301.axis(axis).as_openlab_motor(name=name)
 else:
     xyz = None
 
 stage = openlab.stages.ZaberStage("/dev/ttyACM0")
 if stage is not None:
-    stage_mot = motor.Motor("stage",
-        stage.move,
-        stage.get_position,
-        wait= stage.wait,
-        precision=1e-4, # precision is used for printing only
-    )
+    stage_mot = stage.as_openlab_motor(name="stage",precision_printing=1e-4)
     delay_stage = _delay_stage.delaystage(stage_mot,precision=2e-3)
 else:
     delay_stage = None

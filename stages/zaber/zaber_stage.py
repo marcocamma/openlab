@@ -173,3 +173,15 @@ class ZaberStage:
     def enc_pos(self):
         return self._get("encoder_count_calibrated")*self.encoder_resolution
 
+    def as_openlab_motor(self,name="motor",precision_printing=1e-4):
+        from openlab.generic import motor
+        stage = motor.Motor(name,
+                self.move,
+                self.get_position,
+                wait= self.wait,
+                precision=precision_printing,
+                parents=self
+            )
+        return stage
+
+

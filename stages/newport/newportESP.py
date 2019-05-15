@@ -267,17 +267,17 @@ class Axis(object):
       mode = ""
     self.write('OR'+str(mode))
   
-  @property
-  def home(self):
-    """Define home.
-    
-    This command is used to define current position, HOME position. This means
-    that the current position will be preset to the value defined by parameter 'nn'.
-    """
-    return self.query('DH')
-  @home.setter
-  def home(self, nn):
-    self.write('DH'+str(nn))
+  #@property
+  #def home(self):
+  #  """Define home.
+  #  
+  #  This command is used to define current position, HOME position. This means
+  #  that the current position will be preset to the value defined by parameter 'nn'.
+  #  """
+  #  return self.query('DH')
+  #@home.setter
+  #def home(self, nn):
+  #  self.write('DH'+str(nn))
   
   @property
   def moving(self):
@@ -412,6 +412,20 @@ class Axis(object):
       self.write('SL'+str(left))
     if right is not None:
       self.write('SR'+str(right))
+
+  def as_openlab_motor(self, name="motor",precision_printing=None):
+    from openlab.generic import motor
+    if precision_printing is None: precision_printing = self.resolution
+    stage = motor.Motor(name,
+         self.move_to,
+         self.get_position,
+         wait= self.wait,
+         precision=precision_printing,
+         parents=self
+        )
+    return stage
+
+ 
   
   #def setVelocity(self, vel):
 

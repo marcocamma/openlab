@@ -7,6 +7,7 @@ import os
 import logging
 import time
 import sys
+import collections
 
 from ..utils import  yaml_storage
 from ..utils import  keypress
@@ -163,10 +164,12 @@ class Motor:
         if self.parents is not None:
             ret += "%sParent motor(s):\n"%prepend
             parents = self.parents
-            if isinstance(parents,Motor): parents = (parents,)
+            print(type(parents),Motor)
+            if not isinstance(parents,collections.Iterable): parents = (parents,)
             for parent in parents:
-                ret += "  **********\n"
-                ret += parent.get_info_str(prepend="  ")
+                if hasattr(parent,"get_info_str"):
+                    ret += "  **********\n"
+                    ret += parent.get_info_str(prepend="  ")
         return ret
 
         
