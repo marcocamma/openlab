@@ -176,19 +176,24 @@ class LeCroyScope(object):
     '''
     A class for triggering and fetching waveforms from a LeCroy oscilloscope.
     '''
+
     def __init__(self,  host, port=1861, timeout=5.0):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             self.sock.connect((host, port))
         except OSError as err:
             print("Cannot connect to the scope %s, error was %s"%(host,err))
-            return
+            raise OSError(err)
+
         self.sock.settimeout(timeout)
         self.clear()
         self.send('comm_header short')
         self.check_last_command()
         self.send('comm_format DEF9,BYTE,BIN')
         self.check_last_command()
+
+        self.scope_name = self.get_wavedesc(1)["instrument_name"].decode("ascii")
+        self.host = host
 
     def __del__(self):
         self.sock.close()
@@ -398,14 +403,24 @@ class LeCroyScope(object):
     def display_off(self):
         self.send("DISP OFF")
 
-    def trigger(self,mode="NORM"):
+    def trigger(self,mode="NORM",wait=True):
+        """ 
+        Parameters
+        ----------
+        wait : bool
+            True can be used in SINGLE mode to wait until acquisition is
+            finished before returning
+        """
         if mode not in ["NORM","AUTO","STOP","SINGLE"]:
             raise ValueError("Trigger mode not recognized")
         self.send("TRMD %s"%mode)
+        if wait and mode == "SINGLE":
+            time.sleep(0.05)
+            while self.query("TRMD?").strip() != "TRMD STOP":
+                    time.sleep(0.05)
 
-    def acquire_for_time(self,t):
-        self.send("TRMD NORM")
-        self.send("TRMD AUTO")
+    def acquire_for_time(self,t,trigger="NORM"):
+        self.send("TRMD %s"%trigger)
         self.clear_sweeps()
         time.sleep(t)
         self.send("TRMD STOP")
@@ -434,6 +449,12 @@ class LeCroyScope(object):
           r[name]=value(v[0],v[1])
         r["SWEEPS"]=int(float(a[-1]))
         return r
+
+    def __str__(self):
+        return "LeCroyScope %s, ip %s"%(self.scope_name,self.host)
+
+    def __repr__(self):
+        return self.__str__()
 
 def serialize_descr(info_dict):
     info_dict["how_to_read"] = "use openlab.oscilloscopes.lecroy.deserialize_descr"
