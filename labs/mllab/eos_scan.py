@@ -13,7 +13,7 @@ storage = config.storage
 
 delay_stage = thzsetup.delay_stage
 scope = thzsetup.scope
-scope.get_16bits()
+if scope is not None: scope.get_16bits()
 
 def acquire(nshots=100,use_single=True):
     scope.set_sequence_mode(nshots)
