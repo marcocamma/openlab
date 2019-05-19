@@ -15,7 +15,11 @@ except OSError:
     scope = None
 
 
-esp301 = openlab.stages.newportESP.ESP("/dev/ttyUSB0")
+try:
+    esp301 = openlab.stages.newportESP.ESP("/dev/ttyUSB0")
+except Exception as e:
+    print("Could not create instance of Newport controller, error was '%s'" %str(e))
+    esp301 = None
 if esp301 is not None:
     xyz = DataStorage()
     names = "y x z".split()

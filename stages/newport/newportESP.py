@@ -97,9 +97,13 @@ class ESP(object):
                              parity='N',
                              rtscts=1)
         self.Abort = self.abort
+        # try to read something meaningfull
+        ve = self.version
+        if ve == "": raise Exception("Port %s exists but did not get any reply from ESP controller"%port)
     except serial.SerialException:
         self.ser = None
         print("Cannot connect to ESP controller via "+port)
+        raise Exception("Could not find (or write) to port "+port)
     #print("Found controller: " + self.version)
 
   def __del__(self):
