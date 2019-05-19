@@ -67,11 +67,12 @@ class Camera(object):
         return camera.PixelFormat.Symbolics
 
     def set_format(self,value):
-        if value not in valid_format:
-            ans = "Allowed pixel format for camera are %s"%str(valid_format)
+        valid_formats = self.camera.PixelFormat.Symbolics
+        if value not in valid_formats:
+            ans = "Allowed pixel format for camera are %s"%str(valid_formats)
             raise ValueError(ans)
         else:
-            camera.PixelFormat.SetValue(value)
+            self.camera.PixelFormat.SetValue(value)
     format = property(get_format,set_format)
 
     def get_image(self,timeout=5000,as_array=True):
@@ -111,7 +112,7 @@ class Camera(object):
             camera.StopGrabbing()
 
 
-    def get_images(self,timeout=5000):
+    def get_images_forever(self,timeout=5000):
         camera = self.camera
         n=0
         t0=time.time()
@@ -130,6 +131,30 @@ class Camera(object):
             pass
         finally:
             camera.StopGrabbing()
+
+    def get_images(self,n,use_hw_trigger=False):
+
+        img = self.get_image(); # empty 'buffer' ?
+        self.camera.MaxNumBuffer=100
+        self.strategy = pylon.GrabStrategy_OneByOne
+
+        if use_hw_trigger: self.camera.TriggerMode="On"
+
+        imgs = np.empty( (n,) + img.shape, dtype=img.dtype)
+        images = self.get_images_forever()
+        try:
+            for i in range(n):
+                imgs[i] = next(images)
+        except pylon.TimeoutException:
+            print("  %s: Could only read %d images"%(str(self),i))
+            imgs = imgs[:i]
+        finally:
+            del images
+
+        # clean up
+        self.strategy = pylon.GrabStrategy_LatestImageOnly
+        self.camera.TriggerMode="Off"
+        return imgs
 
     def _get_info(self):
         camera = self.camera
