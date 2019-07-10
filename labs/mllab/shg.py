@@ -36,27 +36,27 @@ def analyze(data):
 
 
 
-def _acquire_pmt(nshots=100,use_single=True):
+def _acquire_pmt(nshots=100,use_single=True, channel = 4):
     scope.set_sequence_mode(nshots)
     scope.trigger("SINGLE")
     time.sleep(0.1)
     while scope.query("TRMD?").strip() != "TRMD STOP":
         time.sleep(0.05)
-    y = scope.get_waveform(4,units="ADU",serialize=True)
+    y = scope.get_waveform(channel,units="ADU",serialize=True)
     yinfo,ydata = y
     x = scope.get_xaxis()[:ydata.shape[1]]
     return dict( xdata=x,
             yinfo=yinfo,ydata=ydata,
             )
 
-def acquire_pmt(nshots=100,folder="auto",comment=None,save=True):
+def acquire_pmt(nshots=100,folder="auto",comment=None,save=True, channel = 4):
     """
     Parameters
     ----------
     folder : path or "auto"
         if auto uses variable defined in global storage (EOS_FOLDER field)
     """
-    data = _acquire_pmt(nshots=nshots)
+    data = _acquire_pmt(nshots=nshots, channel = channel)
     data["counts"] = analyze(data)
     if comment is not None: data["comment"] = comment
     data = DataStorage(data)
