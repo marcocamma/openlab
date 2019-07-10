@@ -23,7 +23,6 @@ import lmfit
 from matplotlib.figure import Figure
 
 
-<<<<<<< HEAD
 class MakeUpSpectrometer:
     def __init__(self,integration_time=0.1):
         self.w = np.arange(500,1000)
@@ -44,7 +43,7 @@ class MakeUpSpectrometer:
         noise = np.asarray( [np.random.normal(scale=noise,size=w.shape) for _ in range(naverage)]).mean(axis=0)
         i = bkg+signal+noise
         return i
-=======
+
 def makeup_data(integration_time=0.1,naverage=1,n=1000,amp=100,noise=2):
     w = np.arange(100,100+n)
     bkg = np.cos(w/100)+100
@@ -52,7 +51,6 @@ def makeup_data(integration_time=0.1,naverage=1,n=1000,amp=100,noise=2):
     noise = np.asarray( [np.random.normal(scale=noise,size=n) for _ in range(naverage)]).mean(axis=0)
     i = bkg+signal+noise
     return w,i
->>>>>>> 44e193a8a1c405cbaf7c263e34a76727a237e349
 
 def gaussfit(x,y):
     g = lmfit.models.GaussianModel()
@@ -279,11 +277,8 @@ if __name__ == "__main__":
         from openlab.oceanoptics import spectrometer
         s = spectrometer.Spectrometer()
     except:
-<<<<<<< HEAD
         s = MakeUpSpectrometer()
-=======
         get_data = makeup_data
->>>>>>> 44e193a8a1c405cbaf7c263e34a76727a237e349
     qApp = QtWidgets.QApplication(sys.argv)
     aw = ApplicationWindow(spectrometer=s)
     aw.setWindowTitle("Spectrometer simple GUI")
