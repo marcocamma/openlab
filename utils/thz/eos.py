@@ -12,22 +12,41 @@ _non_linear_coeff = dict(
         ZnTe = 4.04e-12, # r41 in V/m
 )
 
-_n0 = dict(
+_n0_probe = dict(
         GaP = 3.20, # 800nm
         ZnTe = 2.85 # 800nm
 )
 
+_n0_THz = dict(
+        ZnTe = 3.2,
+        GaP = 3.3399,
+        Ge = 4,
+        Si = 3.42
+        )
+
 
 def field_from_EOS(dI_over_I=0.1,material="ZnTe",crystal_thickness=500e-6,
-        transmission_crystal=0.5,probe_wavelength=800e-9):
+        probe_wavelength=800e-9):
+
+        # fresnel coeff
+        transmission_crystal = 2*1/(1+_n0_THz[material])
 
         dI_over_I = np.atleast_1d(dI_over_I)
-        n0 = _n0[material]
+        n0 = _n0_probe[material]
         nonlin = _non_linear_coeff[material]
         ETHz = np.arcsin(dI_over_I)*probe_wavelength/ (2*np.pi*n0**3*nonlin*transmission_crystal*crystal_thickness)
         ETHz = ETHz*1e-5 # from V/m to kV/cm
         if ETHz.shape[0]==1: ETHz = float(ETHz)
         return ETHz
+
+def _fresnel_e_transmission(n1,n2):
+    return 2*n1/(n1+n2)
+
+def Efield_slab_transmission(material="Ge"):
+    n = _n0_THz[material]
+    t12 = _fresnel_e_transmission(1,n)
+    t21 = _fresnel_e_transmission(n,1)
+    return t12*t21
 
 
 def find_integration_ranges(t,ytraces,bkg_time_range=(-4e-9,-2.5e-9),pulse_time_range=(-1.5e-9,5e-9),plot=False):
