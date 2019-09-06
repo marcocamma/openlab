@@ -1,9 +1,15 @@
 import time
 import numpy as np
 from pypylon import pylon
-import cv2
 
-def get_camera(ip=None,num=0):
+try:
+    import cv2
+    _has_cv2 = True
+except ImportError:
+    print("Can't import cv2, not all functions will be available")
+    _has_cv2 = False
+
+def get_camera(ip=None,num=0,auto_open=True):
     """ if ip is not given, num is used the select the camera number """
     factory = pylon.TlFactory.GetInstance()
     if ip is None:
@@ -19,16 +25,19 @@ def get_camera(ip=None,num=0):
         camera_device = factory.CreateDevice(empty_camera_info)
         camera = pylon.InstantCamera(camera_device)
     try:
-        camera.Open()
-        print("Opening ",camera.DeviceModelName())
+        if auto_open:
+            camera.Open()
+            print("Opening ",camera.DeviceModelName())
+        else:
+            print("Found ",camera.DeviceModelName())
     except:
         pass
     return camera
 
 class Camera(object):
-    def __init__(self,ip=None,num=0,strategy=None):
+    def __init__(self,ip=None,num=0,strategy=None,auto_open=True):
         """ if ip is not given, num is used the select the camera number """
-        self.camera = get_camera(ip=ip,num=num)
+        self.camera = get_camera(ip=ip,num=num,auto_open=auto_open)
         if strategy is None: strategy = pylon.GrabStrategy_LatestImageOnly
         self.strategy = strategy
         #print(self.strategy)
@@ -81,6 +90,27 @@ class Camera(object):
         if as_array:
             image = image.GetArray()
         return image
+
+    def is_open(self):
+        return self.camera.IsOpen()
+
+    def open(self):
+        """ connect to camera if needed """
+        if not self.is_open(): self.camera.Open()
+
+    def close(self):
+        """ close connection to camera if needed """
+        if self.is_open(): self.camera.Close()
+
+    def hardware_trigger(self):
+        self.camera.TriggerMode = "On"
+
+    def free_running(self):
+        self.camera.TriggerMode = "Off"
+
+    def is_hardware_trigger(self):
+        return self.camera.TriggerMode() == "On"
+
 
     def acquire(self,naverage=1):
         images = np.asarray([self.get_image() for _ in range(naverage)])
