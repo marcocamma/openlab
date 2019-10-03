@@ -3,9 +3,9 @@ import time
 
 from . import thzsetup
 from . import config
+import openlab
 from openlab.generic import scan
 import pathlib
-from openlab.oscilloscopes import lecroy
 import datastorage
 from datastorage import DataStorage
 
@@ -51,22 +51,7 @@ def eosreadscan(fname,as_voltage=True,folder="auto"):
         else:
             folder = pathlib.Path(folder)
         fname = folder / str("scan%04d.h5"%fname)
-
-    d = datastorage.read(str(fname))
-    try:
-        d.y1info = [lecroy.deserialize_descr(info) for info in d.y1info]
-        d.y2info = [lecroy.deserialize_descr(info) for info in d.y2info]
-    except:
-        # might not be needed is saved as dictionary
-        pass
-    if as_voltage and d.y1data.dtype in (np.int8,np.int16):
-        y1gain,y1off = d.y1info[0]["vertical_gain"],d.y1info[0]["vertical_offset"]
-        d.y1data = d.y1data*y1gain-y1off
-        y2gain,y2off = d.y2info[0]["vertical_gain"],d.y2info[0]["vertical_offset"]
-        d.y2data = d.y2data*y2gain-y2off
-    return d
-
-
+    return openlab.utils.thz.eosreadscan(fname)
 
 def eosscan(first,last,step=0.1,nshots=100,folder="auto",comment=None):
     """
