@@ -201,7 +201,10 @@ def read_log(fname):
 def read_logs(fnames):
     data = read_log(fnames[0])
     for f in fnames[1:]:
-        data = data.append(read_log(f))
+        try:
+            data = data.append(read_log(f))
+        except Exception as e:
+            print("Could not read logfile",f,"error was",str(e))
     return data
 
 
