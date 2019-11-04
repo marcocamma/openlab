@@ -97,3 +97,11 @@ def eosscan_old(first,last,step=0.1,shots=100,repeat=3):
             data.save(str(fname))
             delay = "%.3f" % delay
             print(time.asctime(),run,idelay,len(delay_list),nrep,repeat,delay)
+
+
+def scan_focus(first_space, last_space, steps, first,last,step=0.1,nshots=100,folder="auto",comment=None):
+    zpos = np.arange(first_space, last_space, steps)
+    for z in zpos:
+        thzsetup.xyz.z.move(z)
+        thzsetup.xyz.z.wait()
+        eosscan(first,last,step=0.1,nshots=100,folder="auto",comment=None)
