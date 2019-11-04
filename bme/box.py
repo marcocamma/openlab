@@ -156,17 +156,15 @@ class Trigger:
         value = self.cmd("delay", value=value)
 
     def info(self,verbose=True):
-        s = 'card %s, '%self.bme_card.card_num
-        s += 'output %s, '%self.channel
-        if verbose:
-            s += 'name %-10s, '%self.cmd('name')
-            s += 'termination %5s, ' % self.cmd('termination')
+        s = 'card,out=(%s,%s), '%(self.bme_card.card_num,self.channel)
         s += 'delay %sus' % self.read_delay()
+        s += ', width %sus' % self.cmd('width')
         if verbose:
+            s += "\n" + "%18s"% ""
+            s += 'termination %5s' % self.cmd('termination')
             divider = self.cmd('divider', as_type=int)
             if not isinstance(divider,int) or divider>1:
                 s += ', divider %s' %divider
-            s += ', width %sus' % self.cmd('width')
         return s
 
     def apply(self): self.bme_card.apply()

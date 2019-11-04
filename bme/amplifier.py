@@ -6,13 +6,15 @@ import time
 import shutil
 
 
+
 class AmplifierTiming:
     def __init__(self,amplifier_card=None,
             amplifier_name="elite",pc_relative_delay=None,burst_card=None,
-            do_autosetup=False):
+            oscillator_reprate=80,do_autosetup=False):
         """
         pc_relative_delay is with respect to pump ... time in sec
         amplifier_name used for storing offset
+        oscillator_reprate: reprate of the seeding oscillator (in MHz)
         """
         self._box_storage = amplifier_card.box.storage
         self.amplifier_name=amplifier_name
@@ -21,6 +23,7 @@ class AmplifierTiming:
         self.pc_trigger = amplifier_card.B
         self.chopper_trigger = amplifier_card.C
         self.burst_card = burst_card
+        self.oscillator_reprate=oscillator_reprate
         if burst_card is not None:
             self.burst_gate = self.amplifier_card.F
             self.shutter_trigger = burst_card.A
@@ -123,18 +126,27 @@ class AmplifierTiming:
             delay = pc_relative_delay
         self.pc_trigger.move_delay(delay)
 
-    def move_amplifier_delay(self,value,as_dial=False,auto_apply=True):
+    def _move_amplifier_delay(self,value,as_dial=False,auto_apply=True):
         if not as_dial:
             offset = self._box_storage['%s/pump_delay_offset'%self.amplifier_name]
             value = value+offset
         self.pump_trigger.move_delay(value*1e6)
         if auto_apply: self.amplifier_card.apply()
 
+
+    def move_amplifier_delay(self,value,as_dial=False,in_oscillator_steps=False,auto_apply=True):
+        oscillator_period = 1/self.oscillator_reprate*1e-6
+        if in_oscillator_steps:
+            value = oscillator_period*round(value/oscillator_period,ndigits=0)
+        self._move_amplifier_delay(value,as_dial=as_dial,auto_apply=auto_apply)
+        return read_amplifier_delay(as_dial=as_dial)
+
     def set_amplifier_delay(self,value):
         current_dial = self.read_amplifier_delay(as_dial=True)
         newoffset = current_dial-value
         self.storage('pump_delay_offset',value=newoffset)
         self.save()
+
 
     def read_amplifier_delay(self,as_dial=False):
         value = float(self.pump_trigger.read_delay())*1e-6

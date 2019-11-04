@@ -11,12 +11,12 @@ try:
         elite = AmplifierTiming(
             amplifier_name="elite",
             amplifier_card=box.dg1,
-            burst_card=box.dg2)
+            burst_card=box.dg2,oscillator_reprate=77.75302)
 
         usp =   AmplifierTiming(
             amplifier_name="usp",
             amplifier_card=box.dg3,
-            burst_card=box.dg4)
+            burst_card=box.dg4,oscillator_reprate=77.75302)
 except Exception as e:
     print("Could define amplifier objects, error was",e)
     elite = usp = None
