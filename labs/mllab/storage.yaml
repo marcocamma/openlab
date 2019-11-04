@@ -1,4 +1,4 @@
-{EOS_FOLDER: /data/thz/2019.04/eos, EOS_IMAGING_FOLDER: /data/thz/2019.09/eos_imaging/,
-  EOS_RUN_NUMBER: 18, RUN_NUMBER: 18, SHG_FOLDER: /data/thz/2019.04/SHG/, SHG_RUN_NUMBER: 548,
+{EOS_FOLDER: /data/thz/2019.09/eos, EOS_IMAGING_FOLDER: /data/thz/2019.09/eos_imaging/,
+  EOS_RUN_NUMBER: 174, RUN_NUMBER: 18, SHG_FOLDER: /data/thz/2019.04/SHG/, SHG_RUN_NUMBER: 548,
   axis3/offset: 0.3, elite/pc_delay: A+2.700000, elite/pump_delay_offset: 1.0e-06,
-  stage/offset: 34.454802343749996, usp/pc_delay: A+3.092, usp/pump_delay_offset: 0.0}
+  stage/offset: 22.61483046875, usp/pc_delay: A+3.092, usp/pump_delay_offset: 1.1e-06}
