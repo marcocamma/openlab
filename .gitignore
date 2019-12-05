@@ -6,3 +6,4 @@ bme/offsets/
 bme/testfiles/
 bme/gpx_files/
 utils/log/
+.vscode/
