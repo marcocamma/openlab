@@ -2,7 +2,9 @@ import datastorage
 import numpy as np
 from . import eos
 from . import tds
+from . import eos_kHz
 from openlab.oscilloscopes import lecroy
+from . import shg_utils
 
 def analyze_pyroelectric(traces,percentile=(15,85)):
 
