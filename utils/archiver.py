@@ -25,6 +25,16 @@ def now():
     return datetime.datetime.now()
 
 
+def get_socket(ip="127.0.0.1",port=1234):
+    """ allows to get data using sock.recv_pyobj() """
+    context = zmq.Context()
+    sock = context.socket(zmq.SUB)
+    addr = "tcp://%s:%s" % (ip, port)
+    sock.connect(addr)
+    sock.setsockopt(zmq.SUBSCRIBE, b"")
+    return sock
+
+
 class Reader(object):
     def __init__(
         self,
@@ -43,12 +53,8 @@ class Reader(object):
         log_every : string
           5s, 6m, etc.
         """
-        context = zmq.Context()
-        sock = context.socket(zmq.SUB)
         addr = "tcp://%s:%s" % (ip, port)
-        sock.connect(addr)
-        sock.setsockopt(zmq.SUBSCRIBE, b"")
-        self.sock = sock
+        self.sock = get_socket(ip=ip,port=port)
         self.addr = addr
         self._stop = False
         self.done = False
