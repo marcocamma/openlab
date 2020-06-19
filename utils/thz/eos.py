@@ -161,12 +161,60 @@ def calc_eos_signal(y1integrals,y2integrals,pumped_pulse=3):
 
     data = dy/s
 
-    return np.squeeze(np.median(data,axis=1))
+    return np.squeeze(np.median(data,axis=1)),dy,s,y1,y2
 
 
 def analyze_scan(fname,as_absolute_field=True,plot=True,**field_from_EOS_kwg):
     data = h5py.File(fname,"r+")
-    delay = data["positions"].value
+    delay = -data["positions"].value
+    y1data = data["y1data"].value
+    y2data = data["y2data"].value
+    t = data["xdata"].value
+    integral1 = calc_pulse_integrals(t=t,ytraces=y1data)
+    integral2 = calc_pulse_integrals(t=t,ytraces=y2data)
+    eos,diff_y,sum_y,y1,y2 = calc_eos_signal(integral1,integral2)
+
+    mean_sum_y=np.mean(sum_y,axis=1)
+    mean_y1=np.mean(y1,axis=1)
+    mean_y2=np.mean(y2,axis=1)
+    if as_absolute_field:
+        eos_absolute = field_from_EOS(eos,**field_from_EOS_kwg)
+    else:
+        eos_absolute = None
+
+    if plot:
+        info = "scan %s"%(fname)
+        if eos_absolute is None:
+            plt.figure()
+            plt.plot(delay,eos,label=info)
+            plt.ylabel("EOS signal a.u.")
+            plt.xlabel('t in ps')
+
+            plt.figure()
+            plt.plot(delay,mean_sum_y,label='sum y1+y2')
+            plt.ylabel("sum photodiodes a.u.")
+            plt.xlabel('t in ps')
+            
+            fig,ax=plt.subplots(2,1)
+            ax[0].plot(delay,mean_y1,label='y1')
+            
+            ax[1].plot(delay,mean_y2,label='y2')
+            ax[1].set_xlabel('t ps')
+
+            
+            
+        else:
+            plt.plot(delay,eos_absolute,label=info)
+            plt.ylabel("E (kV/cm)")
+            plt.xlabel('t in ps')
+        plt.title(info)
+    #data["eos"] = eos
+    #if eos_absolute is not None: data["eos_absolute"] = eos_absolute
+    return delay,eos_absolute,eos,sum_y,y1,y2#,data
+
+def analyze_scan_2(fname,as_absolute_field=True,plot=True, plot_fft = False,**field_from_EOS_kwg):
+    data = h5py.File(fname,"r+")
+    delay = -data["positions"].value
     y1data = data["y1data"].value
     y2data = data["y2data"].value
     t = data["xdata"].value
@@ -182,10 +230,45 @@ def analyze_scan(fname,as_absolute_field=True,plot=True,**field_from_EOS_kwg):
         info = "scan %s"%(fname)
         if eos_absolute is None:
             plt.plot(delay,eos,label=info)
+            plt.ylabel("EOS signal a.u.")
+            plt.xlabel('t in ps')
         else:
             plt.plot(delay,eos_absolute,label=info)
             plt.ylabel("E (kV/cm)")
+            plt.xlabel('t in ps')
         plt.title(info)
+
+    if plot_fft:
+        info = "scan %s"%(fname)
+        figure, ax = plt.subplots(2,1)
+        ax[0].plot(delay,eos_absolute, label = info)
+        E_f, freq = fft(eos_absolute, delay)
+        ax[1].plot(freq, np.abs(E_f))
+
+    
     #data["eos"] = eos
     #if eos_absolute is not None: data["eos_absolute"] = eos_absolute
     return delay,eos#,data
+
+
+
+def fft(E,t): 
+    E_cut = E[t<25]
+    E_freq_full = np.fft.fft(E_cut)
+    freq_full = np.fft.fftfreq(len(E_cut),t[1]-t[0])
+    freq = freq_full[freq_full>0]
+    E_freq = E_freq_full[freq_full>0]
+    return E_freq, freq
+
+def get_run(run):
+    fname = 'scan%04d.h5'%run
+    return fname
+
+def plot_focus(first_run,last_run, step, material = 'ZnTe', crystal_thickness = 500e-6):
+    runs = np.arange(first_run, last_run, step = step)
+    total = len(runs)
+    figure,ax = plt.subplots(total,1)
+    for number_run, run in enumerate(runs):
+        fname = get_run(run)
+        data = analyze_scan(fname, plot = False, material = material, crystal_thickness= crystal_thickness)
+        ax[number_run].plot(data[0],data[1])

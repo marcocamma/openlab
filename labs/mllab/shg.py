@@ -6,13 +6,14 @@ from . import config
 import pathlib
 from openlab.oscilloscopes.lecroy import deserialize_descr
 from datastorage import DataStorage
+from openlab.generic import scan
 
 storage = config.storage
-storage["SHG_FOLDER"] = "/data/thz/2019.04/SHG/"
+folder = storage['SHG_FOLDER']
 
 scope = thzsetup.scope
 if scope is not None: scope.get_16bits()
-
+delay_stage = thzsetup.delay_stage
 
 def convert_to_V(data):
     ydata = data["ydata"]
@@ -33,9 +34,6 @@ def analyze(data):
     counts = data[:,idx].sum(1)
     return counts
 
-
-
-
 def _acquire_pmt(nshots=100,use_single=True, channel = 4):
     scope.set_sequence_mode(nshots)
     scope.trigger("SINGLE")
@@ -48,6 +46,19 @@ def _acquire_pmt(nshots=100,use_single=True, channel = 4):
     return dict( xdata=x,
             yinfo=yinfo,ydata=ydata,
             )
+
+
+def scan_shg(first,last,step = 0.1, nshots = 100, comment = None):
+    run = storage.get("SHG_RUN_NUMBER",0)+1
+    storage['SHG_RUN_NUMBER'] = run
+    storage.save()
+    folder = pathlib.Path(thzsetup.config.storage['SHG_FOLDER'])
+    fname = folder / str('scan%04d.h5'%run)
+    N = int((last-first)/step)
+    def _acq():
+        return _acquire_pmt(nshots=nshots, channel = 1)
+    _acq(); # do an acquisition to be sure things are ready to go
+    scan.ascan(delay_stage,first,last,N,acquire=_acq,fname=fname,comment=comment)
 
 def acquire_pmt(nshots=100,folder="auto",comment=None,save=True, channel = 4):
     """

@@ -439,7 +439,7 @@ class LeCroyScope(object):
         cmd = "PARAMETER_STATISTICS? CUST, P%s" % which
         reply = self.query(cmd)
         # reply syntax PAST CUST,what,v1 units,v2 units, ...
-        a=reply.split(",");
+        a=reply.split(",")
         r={}
         r["P%s" % which] = a[2]
         r["channel"]   = a[3]

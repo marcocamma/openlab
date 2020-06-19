@@ -117,6 +117,7 @@ class Trigger:
         self.channel = channel
         self.save_field = "/".join( (str(self.bme_card.card_num),channel,"delay") )
 
+
     def cmd(self, what, auto_apply=True, **kwargs):
         """ 
         This function checks if the value has changed before chaning value.
@@ -155,10 +156,22 @@ class Trigger:
     def move_delay(self,value):
         value = self.cmd("delay", value=value)
 
+    delay = property(read_delay,move_delay)
+
+    def read_width(self):
+        value = self.cmd("width")
+        return value
+
+    def move_width(self,value):
+        value = self.cmd("width", value=value)
+
+    width = property(read_width,move_width)
+
+
     def info(self,verbose=True):
         s = 'card,out=(%s,%s), '%(self.bme_card.card_num,self.channel)
         s += 'delay %sus' % self.read_delay()
-        s += ', width %sus' % self.cmd('width')
+        s += ', width %sus' % self.read_width()
         if verbose:
             s += "\n" + "%18s"% ""
             s += 'termination %5s' % self.cmd('termination')
@@ -260,7 +273,7 @@ class BmeCard:
 
     def default_widths(self):
         for channel in self.channels:
-            self.cmd('width',channel=channel,auto_apply=False,value=5e-6)
+            self.cmd('width',channel=channel,auto_apply=False,value=5)
         self.apply()
 
     def set_defaults(self):
@@ -289,44 +302,71 @@ class BmeCard:
 class BmeBox:
 
     def __init__(self,ip=None,port=8002,timeout=0.3,
-            storage=None,verbose=True):
+            storage=None,verbose=True,auto_connect=False,auto_close=True):
         """
         storage is an instance of yaml_storage, if None the default is used
+
+        if auto_close: close connection after each communication
+            I tried to implement the auto_close but the computers seems to hang,
+            disabling it for the time being
         """
         if storage is None:
             storage = yaml_storage.Storage(filename="./offsets/bme_data.yaml", autosave=False)
         self.storage = storage
         self.verbose = verbose
-        try:
-            self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.connection.connect((ip, port))
-            self.connection.settimeout(timeout)
-        except OSError:
-            print("Cannot connect to the computer %s"%ip)
-            self.connection = None
-            return
+        self.connection_address = (ip,port)
+        self.timeout = timeout
 
+        self.connection = None
+        self.auto_close = auto_close
 
-
-        # test connection #
-        idn = self.query('*IDN?')
-        if idn == '':
-            msg = 'Cannot connect to the box, either is not on the'
-            msg += 'network or there is already a connected client'
-            raise ConnectionError(msg)
+        if auto_connect: self.connect()
 
         self.dg1 = BmeCard(self,card_num=1)
         self.dg2 = BmeCard(self,card_num=2)
         self.dg3 = BmeCard(self,card_num=3)
         self.dg4 = BmeCard(self,card_num=4)
 
-    def send(self,string):
+    def connect(self):
+        if self.verbose: print("opening connection")
+        if self.connection is None:
+            try:
+                self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                self.connection.connect(self.connection_address)
+                self.connection.settimeout(self.timeout)
+
+            except OSError:
+                print("Cannot connect to the computer %s"%self.ip)
+                self.connection = None
+        if self.verbose: print("Managed to open connection ?",self.connection is not None)
+        return
+
+    def close_connection(self):
+        if self.verbose: print("closing connection")
+        if self.connection is not None:
+            self.connection.close()
+            self.connection = None
+
+    def _send(self,string):
+        """ 
+        send string, not worrying about opening or closing connection.
+        It is useful for querying where we don't want to close the connection 
+        before receiving answer
+        """
         string = string + "\r"
         if self.verbose: print("bmebox send %s"%string)
         byte_string = string.encode('ascii')
         self.connection.send(byte_string)
 
-    def get(self,bufsize=1024,as_type=None,n_attempts=5):
+    def send(self,string):
+        if self.connection is None: self.connect()
+        self._send(string)
+        #if self.auto_close: self.close_connection()
+
+    def _get(self,bufsize=1024,as_type=None,n_attempts=5):
+        """ 
+        get data, not worrying about opening or closing connection.
+        """
         answer=""
         for i in range(n_attempts):
             try:
@@ -339,9 +379,17 @@ class BmeBox:
         if as_type is not None: answer = as_type(answer)
         return answer
 
+    def get(self,bufsize=1024,as_type=None,n_attempts=5):
+        if self.connection is None: self.connect()
+        answer=self._get(bufsize=bufsize,as_type=as_type,n_attempts=n_attempts)
+        #if self.auto_close: self.close_connection()
+        return answer
+
     def query(self,string,bufsize=1024,as_type=None,n_attempts=5):
-        self.send(string)
-        answer = self.get(bufsize=bufsize,as_type=as_type,n_attempts=n_attempts)
+        if self.connection is None: self.connect()
+        self._send(string)
+        answer = self._get(bufsize=bufsize,as_type=as_type,n_attempts=n_attempts)
+        #if self.auto_close: self.close_connection()
         return answer.strip()
 
     def apply(self):

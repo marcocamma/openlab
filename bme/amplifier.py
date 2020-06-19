@@ -17,6 +17,7 @@ class AmplifierTiming:
         oscillator_reprate: reprate of the seeding oscillator (in MHz)
         """
         self._box_storage = amplifier_card.box.storage
+        self.timing_box = amplifier_card.box
         self.amplifier_name=amplifier_name
         self.amplifier_card=amplifier_card
         self.pump_trigger = amplifier_card.A
@@ -139,7 +140,7 @@ class AmplifierTiming:
         if in_oscillator_steps:
             value = oscillator_period*round(value/oscillator_period,ndigits=0)
         self._move_amplifier_delay(value,as_dial=as_dial,auto_apply=auto_apply)
-        return read_amplifier_delay(as_dial=as_dial)
+        return self.read_amplifier_delay(as_dial=as_dial)
 
     def set_amplifier_delay(self,value):
         current_dial = self.read_amplifier_delay(as_dial=True)
