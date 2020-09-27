@@ -6,8 +6,8 @@ except Exception  as e:
 
 from . import thzsetup
 from . import eos_scan
-from . import pyro
-from . import Ge
+from . import scanpyroelectric
+#from . import Ge
 from .thzsetup import scope
 from .thzsetup import delay_stage
 from . import shg
