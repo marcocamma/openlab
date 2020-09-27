@@ -38,8 +38,11 @@ class MakeUpCamera:
             img += np.random.normal(scale=self.noise,size=self.shape)
         return img/naverage
 
-    def set_integration_time(self,value):
+    def set_exp_time(self,value):
         self.integration_time = value
+
+    def set_gain(self,gain):
+        self.gain = gain
 
 def gaussfit(x,y):
     g = lmfit.models.GaussianModel()
@@ -143,27 +146,34 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         cbox.stateChanged.connect(self.fit_clickBox)
         input_pars_layout.addWidget(cbox)
 
+        # INTEGRATION TIME
         lab = QLabel("Integration time (s)",self)
         input_pars_layout.addWidget(lab)
-
-        # Add text field
         ledit = QLineEdit(self)
         ledit.insert("0.1")
         self.integration_time_lineedit = ledit
-        self.camera.set_integration_time(0.1)
+        self.camera.set_exp_time(0.1)
+        input_pars_layout.addWidget(ledit)
+
+        # GAIN
+        lab = QLabel("Gain",self)
+        input_pars_layout.addWidget(lab)
+        ledit = QLineEdit(self)
+        ledit.insert("1")
+        self.gain = 1
+        self.gain_lineedit = ledit
+        self.camera.set_gain(1)
         input_pars_layout.addWidget(ledit)
 
 
+
+        # AVERAGE
         lab = QLabel("number of spectra to average",self)
         input_pars_layout.addWidget(lab)
-
-        # Add text field
         ledit = QLineEdit(self)
-        ledit.insert("3")
+        ledit.insert("1")
         self.naverage_lineedit = ledit
         input_pars_layout.addWidget(ledit)
-
-
 
 
         layout = QtWidgets.QVBoxLayout(self.main_widget)
@@ -194,23 +204,44 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         self.statusBar().showMessage("All hail matplotlib!", 2000)
 
+    def show_info(self,info):
+        if hasattr(self,"info_line"):
+            self.info_line.clear()
+            self.info_line.insert(info)
 
     def get_data(self):
+        print("in get data")
         try:
             integration_time = self.integration_time_lineedit.text()
             integration_time = float(integration_time)
             if integration_time != self.integration_time:
-                self.camera.set_integration_time(integration_time)
-            self.integration_time = integration_time # store new value
-        except ValueError:
+                self.camera.set_exp_time(integration_time)
+                self.show_info("")
+                self.integration_time = integration_time # store new value
+        except ValueError as err:
             integration_time = self.integration_time
+            self.show_info(err.args[0])
 
         try:
             nav = self.naverage_lineedit.text()
             nav = int(nav)
             self.naverage = nav
+            if hasattr(self,"info_line"): self.info_line.insert("")
         except ValueError:
             nav = self.naverage
+
+        try:
+            gain = self.gain_lineedit.text()
+            gain = int(gain)
+            if gain != self.gain:
+                self.camera.set_gain(gain)
+                self.gain = gain
+                self.show_info("")
+        except ValueError as err:
+            gain = self.gain
+            self.gain_lineedit.insert(str(gain))
+            nav = self.naverage
+            self.show_info(err.args[0])
 
         i = self.camera.acquire(naverage=nav)
         if self.subtract_dark:
@@ -262,7 +293,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
 if __name__ == "__main__":
     try:
-        FAIL
+        from openlab.cameras import basler_gige
+        camera =basler_gige.Camera(num=0)
     except:
         camera = MakeUpCamera()
     qApp = QtWidgets.QApplication(sys.argv)
