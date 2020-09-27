@@ -76,7 +76,7 @@ def _general_scan(motors=None,positions=None,acquire=None,fname=None,force=False
         print("File %s exists, returning"%fname)
         return
     else:
-        fname.parent.mkdir(exist_ok=True,parents=True)
+        if not fname.parent.exist(): fname.parent.mkdir(parents=True)
         print("Will save in",str(fname))
 
     data_buffer = []
