@@ -33,7 +33,7 @@ def analyze(img):
     ol.utils.profile.analyze_2dprofile(x,y,img)
 
 
-def scan_time(start,stop,N=100,nimages=20,folder="auto",comment=None,use_hw_trigger=False):
+def scan_time(start,stop,step,nimages=20,folder="auto",comment=None,use_hw_trigger=False):
     """
     Parameters
     ----------
@@ -56,28 +56,38 @@ def scan_time(start,stop,N=100,nimages=20,folder="auto",comment=None,use_hw_trig
     storage['EOS_RUN_NUMBER'] = run
     storage.save()
     fname = folder / str("scan%04d.h5"%run)
-
+    N = int((stop-start)/step)
     def _acquire():
         return acquire(nimages=nimages)
     if comment is None: comment = ""
     comment += "\naxis3 position = %.3f"%(thzsetup.xyz.z.wm())
+    comment += '\nexposition time = '+str(cam.get_exp_time())
     ascan(delay_stage,start,stop,N,acquire=_acquire,fname=fname,comment=comment)
 
 
 
-def scan_focus(start, end, N=10):
+def scan_focus(start, end, start_time, stop_time, step, N=10):
     for zpos in np.linspace(start,end,N+1):
         thzsetup.xyz.z.move(zpos,wait=True)
-        scan_time(-5,4,100,100,comment="50/50, 2 Ge filters + 1 card")
+        scan_time(start_time,stop_time,step,100,comment="50/50, 2 Ge filters + 1 card")
 
 def scan_calibration(start,end,N):
     ZnTe_ypos = np.linspace(start, end, N+1)
     images =[]
     for ypos in ZnTe_ypos:
-        thzsetup.xyz.y.move(ypos, wait = True)
+        thzsetup.xyz.x.move(ypos, wait = True)
         data = acquire(nimages = 1)
         images.append(data['img'])
     folder = pathlib.Path(storage["EOS_IMAGING_FOLDER"])
-    fname = folder/str('calibration_scan.h5')
+    run = storage.get("EOS_RUN_NUMBER",0)+1
+    storage['EOS_RUN_NUMBER'] = run
+    storage.save()
+    fname = folder / str("scan%04d.h5"%run)
     to_save = dict(ZnTe_ypos = ZnTe_ypos, images = images)
     datastorage.save(fname, to_save)
+
+def scan_calibration_multiple_z(ystart,ystop,Ny,zstart,zstop,Nz):
+    ZnTe_zpos = np.linspace(zstart,zstop,Nz+1)
+    for z in ZnTe_zpos:
+        thzsetup.xyz.z.move(z,wait=True)
+        scan_calibration(ystart,ystop,Ny)
