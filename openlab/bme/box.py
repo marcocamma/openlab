@@ -319,6 +319,7 @@ class BmeBox:
 
         self.connection = None
         self.auto_close = auto_close
+        self.ip = ip
 
         if auto_connect: self.connect()
 
