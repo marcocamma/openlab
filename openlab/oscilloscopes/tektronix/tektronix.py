@@ -3,7 +3,7 @@ import time
 import struct
 from collections import namedtuple
 import numpy as np
-import connection_drivers
+from ..utils import connection_drivers
 
 def interpret_wfm_header(data):
 #    s.scpi.ask("WFMOutpre",as_str=False)
