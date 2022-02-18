@@ -6,12 +6,16 @@ except Exception  as e:
 
 from . import thzsetup
 from . import eos_scan
-from . import scanpyroelectric
 #from . import Ge
 from .thzsetup import scope
 from .thzsetup import delay_stage
 from . import shg
-from . import scanpyroelectric
+
+try:
+    from . import scanpyroelectric
+
+except Exception as e:
+    print("thzsetup: Could not import scanpyroelectric module, error was",e)
 
 try:
     from . import eos_imaging
