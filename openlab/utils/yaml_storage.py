@@ -45,7 +45,7 @@ class Storage(collections.UserDict):
             fname = pathlib.Path(fname)
 
         with fname.open("r") as f:
-            self.data = yaml.load(f)
+            self.data = yaml.safe_load(f)
         if self.data is None: self.data = dict()
 
     def save(self,fname=None,backup=False):
