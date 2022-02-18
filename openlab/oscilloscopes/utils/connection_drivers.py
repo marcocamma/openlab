@@ -11,12 +11,13 @@ PORT = 4000
 
 class SocketConnection:
 
-    def __init__(self, host="129.20.76.100", port=PORT,waittime=0.01):
+    def __init__(self, host="129.20.76.100", port=PORT,waittime=0.001,encoding='utf8'):
         self.host = host
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.connect((host, port))
-        self.s.settimeout(0.5)
+        self.s.settimeout(5)
         self.waittime = waittime
+        self.encoding=encoding
 
         self.f = self.s.makefile("rb")
 
@@ -53,17 +54,31 @@ class SocketConnection:
             reply += self.s.recv(nbytes-len(reply))
         return reply
 
-
-    def read(self,encoding='ascii'):
+    def read_nbytes_preallocate(self,nbytes=100):
         """
         Return a message from the scope.
         """
+        reply = bytearray(nbytes)
+        last_idx = 0
+        while last_idx < nbytes:
+            received = self.s.recv(nbytes-last_idx)
+            reply[last_idx:last_idx+len(received)] = received
+            last_idx += len(received)
+        return bytes(reply)
+
+
+    def read(self,encoding='auto'):
+        """
+        Return a message from the scope.
+        """
+        if encoding == "auto" : encoding = self.encoding
         reply = self.read_raw()
-        reply = reply.decode("ascii")
+        reply = reply.decode(encoding)
         reply = reply.strip()
         return reply
 
-    def ask(self,msg,encoding='ascii'):
+    def ask(self,msg,encoding='auto'):
+        if encoding == "auto" : encoding = self.encoding
         if not msg.endswith("?"): msg += "?"
         self.write(msg)
         return self.read(encoding=encoding)
@@ -77,19 +92,22 @@ class SocketConnection:
 
 class USBTMC:
 
-    def __init__(self, port="/dev/usbtmc1",terminator="\n"):
+    def __init__(self, port="/dev/usbtmc1",terminator="\n",encoding="utf8"):
 
         self._file = os.open(port,os.O_RDWR)
         self._terminator = terminator
+        self.encoding=encoding
 
     def write(self,msg):
         if not msg.endswith(self._terminator): msg += self._terminator
-        os.write(self._file,msg.encode("ascii"))
+        os.write(self._file,msg.encode(self.encoding))
 
-    def read(self,encoding='ascii'):
+    def read(self,encoding='auto'):
         """
         Return a message from the scope.
         """
+        if encoding == "auto" : encoding = self.encoding
+        if not msg.endswith("?"): msg += "?"
         raw = self.read_raw()
         reply = raw.decode(encoding)
         reply = reply.strip()
@@ -117,7 +135,9 @@ class USBTMC:
         self.write(msg)
         return self.read_raw()
 
-    def ask(self,msg,encoding='ascii'):
+    def ask(self,msg,encoding='auto'):
+        if encoding == "auto" : encoding = self.encoding
+        if not msg.endswith("?"): msg += "?"
         if not msg.endswith("?"): msg += "?"
         self.write(msg)
         return self.read(encoding=encoding)
