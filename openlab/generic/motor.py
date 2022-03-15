@@ -165,7 +165,7 @@ class Motor:
             ret += "%sParent motor(s):\n"%prepend
             parents = self.parents
             print(type(parents),Motor)
-            if not isinstance(parents,collections.Iterable): parents = (parents,)
+            if not isinstance(parents,collections.abc.Iterable): parents = (parents,)
             for parent in parents:
                 if hasattr(parent,"get_info_str"):
                     ret += "  **********\n"
