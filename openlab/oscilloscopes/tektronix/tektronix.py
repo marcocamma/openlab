@@ -107,6 +107,7 @@ class TektronixScope:
 
     def is_acquiring(self):
         return self.ask('ACQuire')['STATE']=='1'
+        return self.ask('ACQuire')['ACQUIRE:STATE']=='1'
     
     def wait_for_end(self,poll=0.1):
         while self.is_acquiring():
